@@ -583,9 +583,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     @objc private func togglePalette() {
         switch paletteMode(searchField.stringValue)?.generators {
-        case nil: openPalette(generators: false)
-        case false: openPalette(generators: true)
-        case true: openPalette(generators: nil)
+        case .none: openPalette(generators: false)
+        case .some(false): openPalette(generators: true)
+        case .some(true): openPalette(generators: nil)
         }
     }
 
