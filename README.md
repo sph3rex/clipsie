@@ -21,6 +21,7 @@ Clipsie lives in the menu bar and remembers everything you copy: text, formatted
 - **Text in images:** screenshots are searchable by the text in them (recognized on your Mac).
 - **Commands in JavaScript,** run sandboxed: transform an item (trim, change case, hash, Base64, JSON…) or generate something (UUID, password, timestamp), and add your own in a few lines.
 - **Calculator and unit converter** in the search: `15% of 80`, `5 km in miles`, `100 f to c`.
+- **In your language:** English, German, French, Spanish and Romanian, following your macOS language (or per app: System Settings → General → Language & Region → Applications). Search filters and calculator words stay English.
 - **Private by design:** the history is encrypted on disk, passwords from password managers are never recorded, and nothing leaves your Mac.
 
 ## Install
@@ -122,6 +123,16 @@ brew uninstall --zap --cask clipsie     # also deletes them
 ```
 
 The history and settings are in `~/Library/Application Support/Clipsie`. The Keychain item "Clipsie history key" can be deleted in Keychain Access.
+
+## Translations
+
+The interface is translated in `Resources/<language>.lproj/Localizable.strings`; the English text in the code is the key, and anything not translated shows in English. The names of the default commands are translated when shown, while `commands.json` itself stays English.
+
+```bash
+python3 tools/check-translations.py    # lists, per language, strings missing from the translations
+```
+
+To add a language, copy one of the files to a new `<code>.lproj` folder, translate the right-hand sides, and add the code to `CFBundleLocalizations` in `Resources/Info.plist`.
 
 ## License
 

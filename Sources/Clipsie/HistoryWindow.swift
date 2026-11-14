@@ -50,7 +50,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     private let store: Store
-    private let tabControl = NSSegmentedControl(labels: ["History", "Images", "Tagged"],
+    private let tabControl = NSSegmentedControl(labels: [L("History"), L("Images"), L("Tagged")],
                                                 trackingMode: .selectOne, target: nil, action: nil)
     private static let tabs: [HistoryTab] = [.history, .images, .tagged]
     private let searchIcon = NSImageView()
@@ -100,7 +100,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         let panel = HistoryPanel(contentRect: NSRect(x: 0, y: 0, width: 780, height: 480),
                                  styleMask: [.titled, .fullSizeContentView, .resizable],
                                  backing: .buffered, defer: true)
-        panel.title = "Clipboard History"
+        panel.title = L("Clipboard History")
         panel.titleVisibility = .hidden
         panel.titlebarAppearsTransparent = true
         panel.isMovableByWindowBackground = true
@@ -228,7 +228,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         tabControl.target = self
         tabControl.action = #selector(tabControlChanged)
         tabControl.refusesFirstResponder = true
-        tabControl.toolTip = "Switch list (Tab)"
+        tabControl.toolTip = L("Switch list (Tab)")
 
         let column = NSTableColumn(identifier: NSUserInterfaceItemIdentifier("item"))
         column.resizingMask = .autoresizingMask
@@ -368,9 +368,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     private func updatePaletteHelp() {
-        searchField.placeholderString = "Search clipboard   (?? help, \(commandsPrefix) item commands, \(generatorsPrefix) generators)"
-        paletteButton.toolTip = "Commands for the selected item: \(commandsPrefix) or \(commandsShortcut?.display ?? "-")\n"
-            + "Generators: \(generatorsPrefix) or \(generatorsShortcut?.display ?? "-")"
+        searchField.placeholderString = L("Search clipboard   (?? help, %@ item commands, %@ generators)", commandsPrefix, generatorsPrefix)
+        paletteButton.toolTip = L("Commands for the selected item: %@ or %@\nGenerators: %@ or %@", commandsPrefix,
+                                  commandsShortcut?.display ?? "-", generatorsPrefix, generatorsShortcut?.display ?? "-")
     }
 
     private func paletteMode(_ query: String) -> (generators: Bool, filter: String)? {
@@ -398,39 +398,39 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func updateStatus() {
         if isShowingHelp {
-            statusLabel.stringValue = "Help — type to search · Esc closes"
+            statusLabel.stringValue = L("Help — type to search · Esc closes")
             return
         }
         if editingItemID != nil {
-            statusLabel.stringValue = "Editing — ⌘S or ⌘↩ save · Esc cancel · selecting another item saves"
+            statusLabel.stringValue = L("Editing — ⌘S or ⌘↩ save · Esc cancel · selecting another item saves")
             return
         }
         if let paletteCommands {
             if paletteShowsGenerators {
-                statusLabel.stringValue = "\(paletteCommands.count) generators — ↩ run · Esc back to history"
+                statusLabel.stringValue = L("%@ generators — ↩ run · Esc back to history", String(paletteCommands.count))
             } else if paletteItemID == nil {
-                statusLabel.stringValue = "No item selected — Esc and select one, or type \(generatorsPrefix) for generators"
+                statusLabel.stringValue = L("No item selected — Esc and select one, or type %@ for generators", generatorsPrefix)
             } else {
-                statusLabel.stringValue = "\(paletteCommands.count) commands for the selected item — ↩ run · \(generatorsPrefix) generators · Esc back"
+                statusLabel.stringValue = L("%@ commands for the selected item — ↩ run · %@ generators · Esc back", String(paletteCommands.count), generatorsPrefix)
             }
             return
         }
         if selectionOrder.count > 1 {
-            statusLabel.stringValue = "\(selectionOrder.count) selected — ↩ paste all in selection order · ⌘⌫ delete all · ↑↓ back to one"
+            statusLabel.stringValue = L("%@ selected — ↩ paste all in selection order · ⌘⌫ delete all · ↑↓ back to one", String(selectionOrder.count))
             return
         }
         let hint: String
         switch tab {
         case .history:
-            hint = "↩ paste · ?? help · ⇧↩ plain · ⌘I important · ⌘L tags · ⌘E title · ⌘P pin · ⌘⌫ delete · ⇥ next list · \(commandsShortcut?.display ?? commandsPrefix) commands"
+            hint = L("↩ paste · ?? help · ⇧↩ plain · ⌘I important · ⌘L tags · ⌘E title · ⌘P pin · ⌘⌫ delete · ⇥ next list · %@ commands", commandsShortcut?.display ?? commandsPrefix)
         case .tagged:
-            hint = "↩ paste · ?? help · ⇧↩ plain · ⌘I important · ⌘L tags · ⌘E title · ⌘⌫ remove all tags · ⇥ next list · \(commandsShortcut?.display ?? commandsPrefix) commands"
+            hint = L("↩ paste · ?? help · ⇧↩ plain · ⌘I important · ⌘L tags · ⌘E title · ⌘⌫ remove all tags · ⇥ next list · %@ commands", commandsShortcut?.display ?? commandsPrefix)
         case .images:
-            hint = "↩ paste · ?? help · ⇧↩ paste the text in the image · ⌘I important · ⌘L tags · ⌘P pin · ⌘⌫ delete · ⇥ next list"
+            hint = L("↩ paste · ?? help · ⇧↩ paste the text in the image · ⌘I important · ⌘L tags · ⌘P pin · ⌘⌫ delete · ⇥ next list")
         }
         let search = SearchQuery(searchField.stringValue)
         let filters = search.hasFilters ? " · " + search.filterSummary : ""
-        statusLabel.stringValue = "\(ids.count) items\(filters) — \(hint)"
+        statusLabel.stringValue = L("%@ items", String(ids.count)) + filters + " — " + hint
     }
 
     private var rowCount: Int {
@@ -606,7 +606,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             (paletteShowsGenerators
                 ? command.input == .none
                 : command.input == .item && paletteItemID != nil && command.applies(to: paletteItemText, sourceApp: nil))
-                && terms.allSatisfy { command.name.lowercased().contains($0) }
+                && terms.allSatisfy { (command.displayName + "\n" + command.name).lowercased().contains($0) }
         }
         paletteCommands = matching
         tableView.reloadData()
@@ -637,10 +637,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewSearchText = nil
         updateSearchButtons()
         let content = NSMutableAttributedString(
-            string: "\(selection.count) items, pasted in the order you selected them. Items without text (images) are skipped.\n\n",
+            string: L("%@ items, pasted in the order you selected them. Items without text (images) are skipped.", String(selection.count)) + "\n\n",
             attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
         for (index, id) in selection.prefix(100).enumerated() {
-            let text = Content.text(store.representations(for: id)) ?? "(no text — skipped)"
+            let text = Content.text(store.representations(for: id)) ?? L("(no text — skipped)")
             content.append(NSAttributedString(string: "\(index + 1)\n", attributes: [
                 .font: NSFont.systemFont(ofSize: 10, weight: .semibold), .foregroundColor: NSColor.tertiaryLabelColor,
             ]))
@@ -659,7 +659,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewScroll.isHidden = false
         previewSearchText = nil
         updateSearchButtons()
-        let content = NSMutableAttributedString(string: "From plugin “\(result.plugin)” · ↩ pastes · ⌘C copies\n\n", attributes: [
+        let content = NSMutableAttributedString(string: L("From plugin “%@” · ↩ pastes · ⌘C copies", result.plugin) + "\n\n", attributes: [
             .font: NSFont.systemFont(ofSize: 11),
             .foregroundColor: NSColor.secondaryLabelColor,
         ])
@@ -678,23 +678,23 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         setPreviewHeader("")
         let runs: String
         if let script = command.script {
-            runs = "JavaScript (sandboxed): \(script)"
+            runs = L("JavaScript (sandboxed): %@", script)
         } else if let file = command.scriptFile {
-            runs = "JavaScript (sandboxed): scripts/\(file)"
+            runs = L("JavaScript (sandboxed): %@", "scripts/" + file)
         } else if let shell = command.command {
-            runs = "Shell, NOT sandboxed (can read your files and use the network): \(shell)"
+            runs = L("Shell, NOT sandboxed (can read your files and use the network): %@", shell)
         } else {
-            runs = "(nothing)"
+            runs = L("(nothing)")
         }
-        var lines = ["Runs:   \(runs)", "Output: \(command.output.rawValue)"]
+        var lines = [L("Runs: %@", runs), L("Output: %@", command.output.rawValue)]
         if command.input == .none {
-            lines.append("Input:  none")
+            lines.append(L("Input: none"))
         } else {
-            lines.append("Input:  selected item")
+            lines.append(L("Input: selected item"))
             lines.append("")
             lines.append(String((paletteItemText ?? "").prefix(10_000)))
         }
-        if let shortcut = command.localShortcut { lines.insert("Key:    \(shortcut.display)", at: 2) }
+        if let shortcut = command.localShortcut { lines.insert(L("Key: %@", shortcut.display), at: 2) }
         previewImage.image = nil
         previewImage.isHidden = true
         previewScroll.isHidden = false
@@ -852,7 +852,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
                 switch LinkTitles.title(for: url, onLoad: { [weak self] in self?.reloadPreview(ifStill: generation) }) {
                 case .some(.some(let pageTitle)): title = pageTitle
                 case .some(.none): title = url.host ?? ""
-                case .none: title = "Loading title…"
+                case .none: title = L("Loading title…")
                 }
             } else {
                 title = url.host ?? ""
@@ -929,7 +929,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             content.append(NSAttributedString(string: "\n\n"))
         }
         if text == nil, recognizedText != nil {
-            content.append(NSAttributedString(string: "Text in the image · ⇧↩ pastes it\n\n", attributes: [
+            content.append(NSAttributedString(string: L("Text in the image · ⇧↩ pastes it") + "\n\n", attributes: [
                 .font: NSFont.systemFont(ofSize: 11),
                 .foregroundColor: NSColor.secondaryLabelColor,
             ]))
@@ -937,7 +937,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if let text {
             content.append(richText(for: text, reps: reps, generation: previewGeneration))
         } else {
-            content.append(NSAttributedString(string: recognizedText.map { String($0.prefix(200_000)) } ?? "(no text)",
+            content.append(NSAttributedString(string: recognizedText.map { String($0.prefix(200_000)) } ?? L("(no text)"),
                                               attributes: [.font: Self.previewFont, .foregroundColor: NSColor.textColor]))
         }
         previewText.textStorage?.setAttributedString(content)
@@ -954,8 +954,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         selectionChanged()
         isShowingHelp = true
         previewText.textStorage?.setAttributedString(Help.text(
-            commands: commandsShortcut.map { "\($0.display) or \(commandsPrefix)" } ?? commandsPrefix,
-            generators: generatorsShortcut.map { "\($0.display) or \(generatorsPrefix)" } ?? generatorsPrefix,
+            commands: commandsShortcut.map { L("%@ or %@", $0.display, commandsPrefix) } ?? commandsPrefix,
+            generators: generatorsShortcut.map { L("%@ or %@", $0.display, generatorsPrefix) } ?? generatorsPrefix,
             quickPaste: quickPasteModifiers.map(Shortcut.symbols)))
         previewText.scrollToBeginningOfDocument(nil)
         updateStatus()
@@ -973,10 +973,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             chip.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
             chip.tag = index
             chip.refusesFirstResponder = true
-            chip.toolTip = "Show items tagged “\(name)” (tag:\(name))"
+            chip.toolTip = L("Show items tagged “%@” (tag:%@)", name, name)
             tagBar.addArrangedSubview(chip)
         }
-        let edit = NSButton(title: row.tags.isEmpty ? "Add tag" : "",
+        let edit = NSButton(title: row.tags.isEmpty ? L("Add tag") : "",
                             image: NSImage(systemSymbolName: "tag", accessibilityDescription: "Tags") ?? NSImage(),
                             target: self, action: #selector(editTagsClicked))
         edit.isBordered = false
@@ -984,7 +984,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         edit.font = .systemFont(ofSize: NSFont.smallSystemFontSize)
         edit.contentTintColor = .secondaryLabelColor
         edit.refusesFirstResponder = true
-        edit.toolTip = "Add or remove tags (⌘L)"
+        edit.toolTip = L("Add or remove tags (⌘L)")
         tagBar.addArrangedSubview(edit)
     }
 
@@ -1019,7 +1019,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             let button = PointerButton(image: image ?? NSImage(), target: self, action: #selector(searchButtonClicked(_:)))
             button.isBordered = false
             button.contentTintColor = .secondaryLabelColor
-            button.toolTip = "Search with \(provider.name)"
+            button.toolTip = L("Search with %@", provider.name)
             button.tag = index
             button.refusesFirstResponder = true
             button.imagePosition = .imageOnly
@@ -1089,15 +1089,15 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             return
         }
         let alert = NSAlert()
-        alert.messageText = "Tags"
-        alert.informativeText = "Separate tags with spaces or commas. Tagged items stay in the Tagged list after they leave "
-            + "History. Search them with tag:name.\n\nExisting tags: " + store.allTags().joined(separator: ", ")
+        alert.messageText = L("Tags")
+        alert.informativeText = L("Separate tags with spaces or commas. Tagged items stay in the Tagged list after they leave History. Search them with tag:name.\n\nExisting tags: %@",
+                                  store.allTags().joined(separator: ", "))
         let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
         field.stringValue = row.tags.joined(separator: " ")
-        field.placeholderString = "e.g. important work"
+        field.placeholderString = L("e.g. important work")
         alert.accessoryView = field
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: L("Save"))
+        alert.addButton(withTitle: L("Cancel"))
         alert.window.initialFirstResponder = field
         isShowingSheet = true
         alert.beginSheetModal(for: window) { [weak self] response in
@@ -1117,14 +1117,14 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             return
         }
         let alert = NSAlert()
-        alert.messageText = row.title == nil ? "Add a title" : "Edit title"
-        alert.informativeText = "Shown in the lists and the menu bar instead of the content. Pasting still pastes the content. Leave empty to remove it."
+        alert.messageText = row.title == nil ? L("Add a title") : L("Edit title")
+        alert.informativeText = L("Shown in the lists and the menu bar instead of the content. Pasting still pastes the content. Leave empty to remove it.")
         let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
         field.stringValue = row.title ?? ""
         field.placeholderString = String(row.preview.prefix(60))
         alert.accessoryView = field
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: L("Save"))
+        alert.addButton(withTitle: L("Cancel"))
         alert.window.initialFirstResponder = field
         isShowingSheet = true
         alert.beginSheetModal(for: window) { [weak self] response in
@@ -1157,10 +1157,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             return
         }
         let alert = NSAlert()
-        alert.messageText = "Edit as plain text?"
-        alert.informativeText = "This item has formatting (\(Content.typeSummary(reps))). Saving your changes replaces it with plain text, so the formatting is lost. Cancelling the edit (Esc) keeps it."
-        alert.addButton(withTitle: "Edit as Plain Text")
-        alert.addButton(withTitle: "Cancel")
+        alert.messageText = L("Edit as plain text?")
+        alert.informativeText = L("This item has formatting (%@). Saving your changes replaces it with plain text, so the formatting is lost. Cancelling the edit (Esc) keeps it.", Content.typeSummary(reps))
+        alert.addButton(withTitle: L("Edit as Plain Text"))
+        alert.addButton(withTitle: L("Cancel"))
         isShowingSheet = true
         alert.beginSheetModal(for: window) { [weak self] response in
             guard let self else { return }
@@ -1182,7 +1182,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewScroll.isHidden = false
         previewSearchText = nil
         updateSearchButtons()
-        setPreviewHeader("Editing as plain text")
+        setPreviewHeader(L("Editing as plain text"))
         previewText.isRichText = false
         previewText.string = text
         previewText.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
@@ -1402,35 +1402,35 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if !tableView.selectedRowIndexes.contains(row) { select(row) }
         let id = ids[index]
         if selectionOrder.count > 1 {
-            menu.addItem(menuItem("Paste \(selectionOrder.count) Items", #selector(menuPasteAll)))
-            menu.addItem(menuItem("Delete \(selectionOrder.count) Items from This List", #selector(menuDelete)))
+            menu.addItem(menuItem(L("Paste %@ Items", String(selectionOrder.count)), #selector(menuPasteAll)))
+            menu.addItem(menuItem(L("Delete %@ Items from This List", String(selectionOrder.count)), #selector(menuDelete)))
             return
         }
         let pinned = item(at: row)?.pinned ?? false
         let important = item(at: row)?.important ?? false
 
-        menu.addItem(menuItem("Paste", #selector(menuPaste)))
-        menu.addItem(menuItem("Paste as Plain Text", #selector(menuPastePlain)))
-        menu.addItem(menuItem("Copy", #selector(menuCopy)))
-        menu.addItem(menuItem(important ? "Remove Tag “important”" : "Add Tag “important”", #selector(menuToggleImportant)))
-        menu.addItem(menuItem("Tags…", #selector(menuEditTags)))
-        menu.addItem(menuItem(item(at: row)?.title == nil ? "Add Title…" : "Edit Title…", #selector(menuEditTitle)))
+        menu.addItem(menuItem(L("Paste"), #selector(menuPaste)))
+        menu.addItem(menuItem(L("Paste as Plain Text"), #selector(menuPastePlain)))
+        menu.addItem(menuItem(L("Copy"), #selector(menuCopy)))
+        menu.addItem(menuItem(important ? L("Remove Tag “important”") : L("Add Tag “important”"), #selector(menuToggleImportant)))
+        menu.addItem(menuItem(L("Tags…"), #selector(menuEditTags)))
+        menu.addItem(menuItem(item(at: row)?.title == nil ? L("Add Title…") : L("Edit Title…"), #selector(menuEditTitle)))
         if let kind = item(at: row)?.kind, kind == .text || kind == .richText {
-            menu.addItem(menuItem("Edit Text", #selector(menuEditText)))
+            menu.addItem(menuItem(L("Edit Text"), #selector(menuEditText)))
         }
         switch tab {
         case .history, .images:
-            menu.addItem(menuItem(pinned ? "Unpin" : "Pin", #selector(menuTogglePin)))
-            menu.addItem(menuItem("Delete from History", #selector(menuDelete)))
+            menu.addItem(menuItem(pinned ? L("Unpin") : L("Pin"), #selector(menuTogglePin)))
+            menu.addItem(menuItem(L("Delete from History"), #selector(menuDelete)))
         case .tagged:
-            menu.addItem(menuItem("Remove All Tags", #selector(menuDelete)))
+            menu.addItem(menuItem(L("Remove All Tags"), #selector(menuDelete)))
         }
 
         let applicable = applicableCommands(for: id)
         if !applicable.isEmpty {
             menu.addItem(.separator())
             for command in applicable {
-                let item = menuItem(command.name, #selector(menuRunCommand(_:)))
+                let item = menuItem(command.displayName, #selector(menuRunCommand(_:)))
                 item.representedObject = command.name
                 if let shortcut = command.localShortcut { item.title += "   " + shortcut.display }
                 menu.addItem(item)
@@ -1647,8 +1647,8 @@ final class ItemCellView: NSTableCellView {
         iconView.image = NSImage(systemSymbolName: command.input == .none ? "sparkles" : "bolt",
                                  accessibilityDescription: nil)
         marksLabel.stringValue = command.usesShell ? "⚠︎" : ""
-        toolTip = command.usesShell ? "Shell command: not sandboxed" : nil
-        titleLabel.stringValue = command.name
+        toolTip = command.usesShell ? L("Shell command: not sandboxed") : nil
+        titleLabel.stringValue = command.displayName
         detailLabel.stringValue = command.localShortcut?.display ?? command.output.rawValue
     }
 

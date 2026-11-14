@@ -191,9 +191,9 @@ enum RichPreview {
                                                                .contentModificationDateKey])
                 if let kind = values?.localizedTypeDescription { details.append(kind) }
                 if !isDirectory.boolValue, let size = values?.fileSize { details.append(sizes.string(fromByteCount: Int64(size))) }
-                if let modified = values?.contentModificationDate { details.append("modified \(dates.string(from: modified))") }
+                if let modified = values?.contentModificationDate { details.append(L("modified %@", dates.string(from: modified))) }
             } else {
-                details.append("Missing: moved, renamed or deleted since it was copied")
+                details.append(L("Missing: moved, renamed or deleted since it was copied"))
             }
             result.append(NSAttributedString(string: details.joined(separator: " · ") + "\n", attributes: [
                 .font: NSFont.systemFont(ofSize: 11),
@@ -204,7 +204,7 @@ enum RichPreview {
             ]))
         }
         if paths.count > limit {
-            result.append(NSAttributedString(string: "… and \(paths.count - limit) more", attributes: [
+            result.append(NSAttributedString(string: L("… and %@ more", String(paths.count - limit)), attributes: [
                 .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor,
             ]))
         }

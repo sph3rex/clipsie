@@ -68,7 +68,7 @@ final class ScriptEngine {
             context.exception = nil
             if Date().timeIntervalSince(started) >= timeout * 0.9 {
                 compiled[source] = nil
-                return .failure(ScriptError(message: "Stopped after \(Int(timeout))s (timeout)"))
+                return .failure(ScriptError(message: L("Stopped after %@ s (timeout)", String(Int(timeout)))))
             }
             return .failure(ScriptError(message: Self.describe(exception)))
         }
@@ -84,7 +84,7 @@ final class ScriptEngine {
 
     private func compile(_ source: String, name: String) -> Result<(context: JSContext, function: JSValue), ScriptError> {
         guard let context = JSContext(virtualMachine: machine) else {
-            return .failure(ScriptError(message: "Cannot create a JavaScript context"))
+            return .failure(ScriptError(message: L("Cannot create a JavaScript context")))
         }
         context.name = name
         installAPI(in: context)
@@ -97,14 +97,14 @@ final class ScriptEngine {
                 return .success((context, function))
             }
         }
-        let message = context.exception.map(Self.describe) ?? "invalid script"
+        let message = context.exception.map(Self.describe) ?? L("invalid script")
         return .failure(ScriptError(message: message))
     }
 
     private static func describe(_ exception: JSValue) -> String {
         let message = exception.toString() ?? "error"
         guard let line = exception.objectForKeyedSubscript("line"), line.isNumber else { return message }
-        return "\(message) (line \(max(1, line.toInt32() - 2)))"
+        return L("%@ (line %@)", message, String(max(1, line.toInt32() - 2)))
     }
 
     private func installAPI(in context: JSContext) {

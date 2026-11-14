@@ -43,14 +43,14 @@ enum HistoryImport {
                 summary.added += counts.added
                 summary.merged += counts.merged
             } else {
-                summary.skipped["database error (see Console)", default: 0] += batch.count
+                summary.skipped[L("database error (see Console)"), default: 0] += batch.count
             }
             batch.removeAll()
         }
 
         func add(_ object: Any) {
             guard let dictionary = object as? [String: Any] else {
-                summary.skip("not an item")
+                summary.skip(L("not an item"))
                 return
             }
             switch item(from: dictionary, maxItemBytes: maxItemBytes) {
@@ -61,7 +61,7 @@ enum HistoryImport {
         }
 
         let lines = try LineReader(url: url)
-        guard let first = lines.next() else { throw ImportError(description: "The file is empty.") }
+        guard let first = lines.next() else { throw ImportError(description: L("The file is empty.")) }
         let header = String(decoding: first, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines)
         if header.hasSuffix(itemsLineSuffix) {
             let headerJSON = Data((header.dropLast(itemsLineSuffix.count) + "}").utf8)
@@ -71,7 +71,7 @@ enum HistoryImport {
                 if text.hasSuffix(",") { text.removeLast() }
                 if text.isEmpty || text == "]}" { continue }
                 guard let object = try? JSONSerialization.jsonObject(with: Data(text.utf8)) else {
-                    summary.skip("unreadable line")
+                    summary.skip(L("unreadable line"))
                     continue
                 }
                 add(object)
@@ -82,11 +82,11 @@ enum HistoryImport {
             do {
                 root = try JSONSerialization.jsonObject(with: data)
             } catch {
-                throw ImportError(description: "This isn't a JSON file: \(error.localizedDescription)")
+                throw ImportError(description: L("This isn't a JSON file: %@", error.localizedDescription))
             }
             try checkVersion(root)
             guard let items = (root as? [String: Any])?["items"] as? [Any] ?? root as? [Any] else {
-                throw ImportError(description: "The file has no \"items\" list. Choose a file made with Export as JSON….")
+                throw ImportError(description: L("The file has no \"items\" list. Choose a file made with Export as JSON…."))
             }
             items.forEach(add)
         }
@@ -97,7 +97,7 @@ enum HistoryImport {
     private static func checkVersion(_ header: Any?) throws {
         guard let version = (header as? [String: Any])?["version"] as? Int else { return }
         if version > 1 {
-            throw ImportError(description: "The file was made by a newer version of Clipsie (format version \(version)).")
+            throw ImportError(description: L("The file was made by a newer version of Clipsie (format version %@).", String(version)))
         }
     }
 
@@ -113,17 +113,17 @@ enum HistoryImport {
             var reps: [Representation] = []
             for rep in encoded {
                 guard let type = rep["type"] as? String, let base64 = rep["base64"] as? String,
-                      let data = Data(base64Encoded: base64) else { return .failure(SkipReason("invalid formats data")) }
+                      let data = Data(base64Encoded: base64) else { return .failure(SkipReason(L("invalid formats data"))) }
                 reps.append(Representation(itemIndex: rep["item"] as? Int ?? 0, type: type, data: data))
             }
             capture = Capture(representations: reps, sourceApp: sourceApp)
         } else if let text = object["text"] as? String, !text.isEmpty {
             capture = Capture(text: text, sourceApp: sourceApp)
         } else {
-            return .failure(SkipReason("no content (exported without formats)"))
+            return .failure(SkipReason(L("no content (exported without formats)")))
         }
         if maxItemBytes > 0, capture.byteSize > maxItemBytes {
-            return .failure(SkipReason("larger than maxItemBytes"))
+            return .failure(SkipReason(L("larger than maxItemBytes")))
         }
 
         let now = Date().timeIntervalSince1970

@@ -12,14 +12,14 @@ enum DatabaseEncryption {
         var description: String {
             switch self {
             case .keyMissing:
-                return "The history is encrypted, but its key isn't in your Keychain (item “\(Self.keyLabel)”)."
+                return L("The history is encrypted, but its key isn't in your Keychain (item “%@”).", Self.keyLabel)
             case .wrongKey:
-                return "The key in your Keychain (item “\(Self.keyLabel)”) doesn't open the history."
+                return L("The key in your Keychain (item “%@”) doesn't open the history.", Self.keyLabel)
             case .keychain(let status):
                 let message = SecCopyErrorMessageString(status, nil) as String? ?? "error \(status)"
-                return "The Keychain didn't give out the history's key: \(message)"
+                return L("The Keychain didn't give out the history's key: %@", message)
             case .migration(let message):
-                return "Encrypting the existing history failed, so it was left as it was: \(message)"
+                return L("Encrypting the existing history failed, so it was left as it was: %@", message)
             }
         }
 

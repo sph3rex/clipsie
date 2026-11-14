@@ -4,7 +4,7 @@ enum Help {
     static func text(commands: String, generators: String, quickPaste: String?) -> NSAttributedString {
         let result = NSMutableAttributedString()
         func heading(_ text: String) {
-            result.append(NSAttributedString(string: (result.length == 0 ? "" : "\n") + text + "\n", attributes: [
+            result.append(NSAttributedString(string: (result.length == 0 ? "" : "\n") + L(text) + "\n", attributes: [
                 .font: NSFont.systemFont(ofSize: 14, weight: .semibold), .foregroundColor: NSColor.labelColor,
             ]))
         }
@@ -17,12 +17,12 @@ enum Help {
                 .font: NSFont.monospacedSystemFont(ofSize: 11, weight: .regular),
                 .foregroundColor: NSColor.labelColor, .paragraphStyle: style,
             ]))
-            result.append(NSAttributedString(string: description + "\n", attributes: [
+            result.append(NSAttributedString(string: L(description) + "\n", attributes: [
                 .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: style,
             ]))
         }
         func note(_ text: String) {
-            result.append(NSAttributedString(string: text + "\n", attributes: [
+            result.append(NSAttributedString(string: L(text) + "\n", attributes: [
                 .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor,
             ]))
         }

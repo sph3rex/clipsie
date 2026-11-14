@@ -49,6 +49,8 @@ struct UserCommand: Decodable {
 
     var localShortcut: Shortcut? { shortcut.flatMap(Shortcut.init) }
 
+    var displayName: String { L(name) }
+
     enum Engine {
         case javaScript(source: String)
         case shell(String)
@@ -61,7 +63,7 @@ struct UserCommand: Decodable {
             do {
                 return .javaScript(source: try String(contentsOf: url, encoding: .utf8))
             } catch {
-                throw ScriptError(message: "Cannot read \(url.path): \(error.localizedDescription)")
+                throw ScriptError(message: L("Cannot read %@: %@", url.path, error.localizedDescription))
             }
         }
         return command.map { .shell($0) }
@@ -187,7 +189,7 @@ enum CommandRunner {
 
         var error = String(decoding: errorBuffer.data, as: UTF8.self)
         if process.terminationReason == .uncaughtSignal {
-            error = "Terminated (timeout after \(Int(timeout))s?)\n" + error
+            error = L("Terminated (timeout after %@ s?)", String(Int(timeout))) + "\n" + error
         }
         return CommandResult(status: process.terminationStatus,
                              output: String(decoding: output, as: UTF8.self),

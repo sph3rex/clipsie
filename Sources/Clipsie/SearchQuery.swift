@@ -104,16 +104,22 @@ struct SearchQuery {
         var parts = tags.map { "tag: \($0)" } + apps.map { "app: \($0)" }
         parts += types.map { type in
             switch type {
-            case .text: return "Text"
-            case .rich: return "Formatted text"
-            case .image: return "Images"
-            case .file: return "Files"
-            case .link: return "Links"
-            case .color: return "Colors"
-            case .other: return "Other"
+            case .text: return L("Text")
+            case .rich: return L("Formatted text")
+            case .image: return L("Images")
+            case .file: return L("Files")
+            case .link: return L("Links")
+            case .color: return L("Colors")
+            case .other: return L("Other")
             }
         }
-        parts += flags.map { $0.rawValue.capitalized }
+        parts += flags.map { flag in
+            switch flag {
+            case .pinned: return L("Pinned")
+            case .tagged: return L("Tagged")
+            case .titled: return L("Titled")
+            }
+        }
         let dates = DateFormatter()
         dates.dateStyle = .medium
         dates.timeStyle = .none
@@ -122,11 +128,11 @@ struct SearchQuery {
         case let (after?, last?) where Calendar.current.isDate(after, inSameDayAs: last):
             parts.append(dates.string(from: after))
         case let (after?, last?):
-            parts.append(after > last ? "No dates" : "\(dates.string(from: after)) – \(dates.string(from: last))")
+            parts.append(after > last ? L("No dates") : "\(dates.string(from: after)) – \(dates.string(from: last))")
         case let (after?, nil):
-            parts.append("from \(dates.string(from: after))")
+            parts.append(L("from %@", dates.string(from: after)))
         case let (nil, last?):
-            parts.append("until \(dates.string(from: last))")
+            parts.append(L("until %@", dates.string(from: last)))
         case (nil, nil):
             break
         }

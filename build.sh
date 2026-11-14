@@ -28,6 +28,7 @@ done
 iconutil -c icns "$ICONSET" -o "$APP/Contents/Resources/AppIcon.icns"
 cp Resources/StatusIcon.png Resources/StatusIcon@2x.png "$APP/Contents/Resources/"
 cp -R Resources/plugins "$APP/Contents/Resources/plugins"
+cp -R Resources/*.lproj "$APP/Contents/Resources/"
 codesign --force --sign "${SIGN_IDENTITY:--}" "$APP"
 echo "Signed with: ${SIGN_IDENTITY:-ad hoc (set SIGN_IDENTITY to use a certificate)}"
 echo "Built $APP"

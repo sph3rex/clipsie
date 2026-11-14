@@ -32,7 +32,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             Plugins.installDefaults()
             store = try openStore()
         } catch {
-            showError("Cannot open clipboard history", "\(error)")
+            showError(L("Cannot open clipboard history"), "\(error)")
             NSApp.terminate(nil)
             return
         }
@@ -81,21 +81,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         do {
             config = try Config.load()
         } catch {
-            showError("config.json is invalid — using defaults", "\(error)")
+            showError(L("config.json is invalid — using defaults"), "\(error)")
             config = Config()
         }
         do {
             let loaded = try UserCommand.load()
             commands = loaded.commands
             if !loaded.skipped.isEmpty {
-                showError("Automatic commands can only run JavaScript",
-                          "These were skipped, because they use a shell \"command\": "
-                          + loaded.skipped.map { "“\($0)”" }.joined(separator: ", ")
-                          + ".\n\nAutomatic commands see everything you copy, so they run sandboxed only. "
-                          + "Rewrite them with \"script\" (see the README), or set \"enabled\": false.")
+                showError(L("Automatic commands can only run JavaScript"),
+                          L("These were skipped, because they use a shell \"command\": %@.\n\nAutomatic commands see everything you copy, so they run sandboxed only. Rewrite them with \"script\" (see the README), or set \"enabled\": false.",
+                            loaded.skipped.map { "“\($0)”" }.joined(separator: ", ")))
             }
         } catch {
-            showError("commands.json is invalid — no commands loaded", "\(error)")
+            showError(L("commands.json is invalid — no commands loaded"), "\(error)")
             commands = []
         }
         ScriptEngine.commands.reset()
@@ -107,7 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         paster.pasteDelaysByApp = config.pasteDelayMsByApp.mapValues { Double($0) / 1000 }
         paster.pasteShortcutsByApp = config.pasteShortcutByApp.compactMapValues { string in
             guard let shortcut = Shortcut(string) else {
-                showError("Invalid paste shortcut “\(string)” in pasteShortcutByApp", "Use a form like \"ctrl+v\".")
+                showError(L("Invalid paste shortcut “%@” in pasteShortcutByApp", string), L("Use a form like \"ctrl+v\"."))
                 return nil
             }
             return shortcut
@@ -122,8 +120,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         } else if let modifiers = Shortcut.modifiers(config.quickPasteModifiers), !modifiers.isEmpty {
             history.quickPasteModifiers = modifiers
         } else {
-            showError("Invalid quickPasteModifiers “\(config.quickPasteModifiers)” in config.json",
-                      "Use modifiers like \"cmd\", \"ctrl\", \"alt\" or \"ctrl+alt\", or \"\" to turn quick paste off.")
+            showError(L("Invalid quickPasteModifiers “%@” in config.json", config.quickPasteModifiers),
+                      L("Use modifiers like \"cmd\", \"ctrl\", \"alt\" or \"ctrl+alt\", or \"\" to turn quick paste off."))
             history.quickPasteModifiers = .command
         }
         history.commandsPrefix = config.commandsPrefix
@@ -140,8 +138,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     private func paletteShortcut(_ string: String, key: String) -> Shortcut? {
         guard !string.isEmpty else { return nil }
         guard let shortcut = Shortcut(string), !shortcut.modifiers.isDisjoint(with: [.command, .control]) else {
-            showError("Invalid \(key) “\(string)” in config.json",
-                      "Use a shortcut with cmd or ctrl, e.g. \"cmd+shift+e\", or \"\" for none.")
+            showError(L("Invalid %@ “%@” in config.json", key, string),
+                      L("Use a shortcut with cmd or ctrl, e.g. \"cmd+shift+e\", or \"\" for none."))
             return nil
         }
         return shortcut
@@ -154,23 +152,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             center.register($0, action: { [weak self] in self?.toggleHistory() })
         } ?? false
         if !registered {
-            showError("Cannot register shortcut “\(config.historyHotkey)”",
-                      "It is invalid or already used by another app. Change historyHotkey in config.json.")
+            showError(L("Cannot register shortcut “%@”", config.historyHotkey),
+                      L("It is invalid or already used by another app. Change historyHotkey in config.json."))
         }
         if !config.pastePlainHotkey.isEmpty {
             let registered = Shortcut(config.pastePlainHotkey).map {
                 center.register($0, action: { [weak self] in self?.pasteClipboardAsPlainText() })
             } ?? false
             if !registered {
-                showError("Cannot register shortcut “\(config.pastePlainHotkey)”",
-                          "It is invalid or already used by another app. Change pastePlainHotkey in config.json (\"\" disables it).")
+                showError(L("Cannot register shortcut “%@”", config.pastePlainHotkey),
+                          L("It is invalid or already used by another app. Change pastePlainHotkey in config.json (\"\" disables it)."))
             }
         }
         for command in commands where command.type == .menu {
             guard let string = command.globalShortcut else { continue }
             guard let shortcut = Shortcut(string),
                   center.register(shortcut, action: { [weak self] in self?.runOnLatest(command) }) else {
-                showError("Cannot register shortcut “\(string)” for “\(command.name)”", "It is invalid or already in use.")
+                showError(L("Cannot register shortcut “%@” for “%@”", string, command.displayName), L("It is invalid or already in use."))
                 continue
             }
         }
@@ -352,7 +350,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     private func finish(_ command: UserCommand, result: CommandResult, input: String, itemID: Int64?,
                         target: NSRunningApplication?) {
         guard result.status == 0 else {
-            showError("Command “\(command.name)” failed (exit \(result.status))",
+            showError(L("Command “%@” failed (exit %@)", command.displayName, String(result.status)),
                       result.error.isEmpty ? result.output : result.error)
             return
         }
@@ -414,9 +412,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
 
     private func updateStatusIcon() {
         let image = monitor.isPaused
-            ? NSImage(systemSymbolName: "pause.circle", accessibilityDescription: "Clipsie (paused)")
+            ? NSImage(systemSymbolName: "pause.circle", accessibilityDescription: L("Clipsie (paused)"))
             : NSImage(named: "StatusIcon") ?? NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Clipsie")
-        image?.accessibilityDescription = monitor.isPaused ? "Clipsie (paused)" : "Clipsie"
+        image?.accessibilityDescription = monitor.isPaused ? L("Clipsie (paused)") : "Clipsie"
         image?.isTemplate = true
         statusItem.button?.image = image
     }
@@ -427,7 +425,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
 
         let rows = store.recentRows(limit: config.menuItemCount, in: .history)
         if rows.isEmpty {
-            let empty = NSMenuItem(title: "History is empty", action: nil, keyEquivalent: "")
+            let empty = NSMenuItem(title: L("History is empty"), action: nil, keyEquivalent: "")
             empty.isEnabled = false
             menu.addItem(empty)
         }
@@ -444,7 +442,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             for row in tagged {
                 submenu.addItem(historyMenuItem(row, keyEquivalent: ""))
             }
-            let taggedItem = NSMenuItem(title: "Tagged", action: nil, keyEquivalent: "")
+            let taggedItem = NSMenuItem(title: L("Tagged"), action: nil, keyEquivalent: "")
             taggedItem.submenu = submenu
             menu.addItem(.separator())
             menu.addItem(taggedItem)
@@ -459,12 +457,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             if !applicable.isEmpty {
                 let submenu = NSMenu()
                 for command in applicable {
-                    let item = NSMenuItem(title: command.name, action: #selector(runFromMenu(_:)), keyEquivalent: "")
+                    let item = NSMenuItem(title: command.displayName, action: #selector(runFromMenu(_:)), keyEquivalent: "")
                     item.target = self
                     item.representedObject = command.name
                     submenu.addItem(item)
                 }
-                let commandsItem = NSMenuItem(title: "Commands", action: nil, keyEquivalent: "")
+                let commandsItem = NSMenuItem(title: L("Commands"), action: nil, keyEquivalent: "")
                 commandsItem.submenu = submenu
                 menu.addItem(.separator())
                 menu.addItem(commandsItem)
@@ -473,21 +471,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
 
         menu.addItem(.separator())
         let hotkey = Shortcut(config.historyHotkey)?.display ?? config.historyHotkey
-        addMenuItem(to: menu, "Show History…   \(hotkey)", #selector(showHistoryFromMenu))
-        addMenuItem(to: menu, "Pause Capturing", #selector(togglePause)).state = monitor.isPaused ? .on : .off
-        addMenuItem(to: menu, "Clear History…", #selector(clearHistory))
-        addMenuItem(to: menu, "Remove Duplicates…", #selector(removeDuplicates))
-        addMenuItem(to: menu, "Export as JSON…", #selector(exportHistory))
-        addMenuItem(to: menu, isImporting ? "Importing…" : "Import from JSON…", #selector(importHistory))
+        addMenuItem(to: menu, L("Show History…") + "   " + hotkey, #selector(showHistoryFromMenu))
+        addMenuItem(to: menu, L("Pause Capturing"), #selector(togglePause)).state = monitor.isPaused ? .on : .off
+        addMenuItem(to: menu, L("Clear History…"), #selector(clearHistory))
+        addMenuItem(to: menu, L("Remove Duplicates…"), #selector(removeDuplicates))
+        addMenuItem(to: menu, L("Export as JSON…"), #selector(exportHistory))
+        addMenuItem(to: menu, isImporting ? L("Importing…") : L("Import from JSON…"), #selector(importHistory))
         menu.addItem(.separator())
-        addMenuItem(to: menu, "Edit Settings…", #selector(openConfig))
-        addMenuItem(to: menu, "Edit Commands…", #selector(openCommands))
-        addMenuItem(to: menu, "Reload Settings & Commands", #selector(reloadSettings))
-        addMenuItem(to: menu, "Open Data Folder", #selector(openDataFolder))
-        addMenuItem(to: menu, "Launch at Login", #selector(toggleLaunchAtLogin)).state =
+        addMenuItem(to: menu, L("Edit Settings…"), #selector(openConfig))
+        addMenuItem(to: menu, L("Edit Commands…"), #selector(openCommands))
+        addMenuItem(to: menu, L("Reload Settings & Commands"), #selector(reloadSettings))
+        addMenuItem(to: menu, L("Open Data Folder"), #selector(openDataFolder))
+        addMenuItem(to: menu, L("Launch at Login"), #selector(toggleLaunchAtLogin)).state =
             SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(.separator())
-        addMenuItem(to: menu, "Quit", #selector(NSApplication.terminate(_:)), target: NSApp)
+        addMenuItem(to: menu, L("Quit"), #selector(NSApplication.terminate(_:)), target: NSApp)
     }
 
     @discardableResult
@@ -537,11 +535,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     @objc private func clearHistory() {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Clear clipboard history?"
-        alert.informativeText = "All items except pinned ones will be removed from History. Tagged items are kept in Tagged. This cannot be undone."
+        alert.messageText = L("Clear clipboard history?")
+        alert.informativeText = L("All items except pinned ones will be removed from History. Tagged items are kept in Tagged. This cannot be undone.")
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "Clear")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: L("Clear"))
+        alert.addButton(withTitle: L("Cancel"))
         if alert.runModal() == .alertFirstButtonReturn {
             store.clear(keepPinned: true)
             history.refreshIfVisible()
@@ -551,17 +549,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     @objc private func removeDuplicates() {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Remove duplicates?"
-        alert.informativeText = "Items with exactly the same text as a newer item are deleted. The newest copy is kept and "
-            + "gets their pin, title and tags. Images are left alone. This cannot be undone."
+        alert.messageText = L("Remove duplicates?")
+        alert.informativeText = L("Items with exactly the same text as a newer item are deleted. The newest copy is kept and gets their pin, title and tags. Images are left alone. This cannot be undone.")
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "Remove")
-        alert.addButton(withTitle: "Cancel")
+        alert.addButton(withTitle: L("Remove"))
+        alert.addButton(withTitle: L("Cancel"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         store.removeDuplicates { [weak self] count in
             self?.history.refreshIfVisible()
             let done = NSAlert()
-            done.messageText = count == 0 ? "No duplicates found" : "Removed \(count) duplicate\(count == 1 ? "" : "s")"
+            done.messageText = count == 0 ? L("No duplicates found") : L(count == 1 ? "Removed %@ duplicate" : "Removed %@ duplicates", String(count))
             NSApp.activate(ignoringOtherApps: true)
             done.runModal()
         }
@@ -571,9 +568,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         NSApp.activate(ignoringOtherApps: true)
         let panel = NSSavePanel()
         let day = ISO8601DateFormatter.string(from: Date(), timeZone: .current, formatOptions: [.withFullDate])
-        panel.nameFieldStringValue = "Clipboard History \(day).json"
+        panel.nameFieldStringValue = L("Clipboard History %@.json", day)
         panel.allowedContentTypes = [.json]
-        let checkbox = NSButton(checkboxWithTitle: "Include all formats of text items (RTF, HTML, …) — larger file. Images are always included.",
+        let checkbox = NSButton(checkboxWithTitle: L("Include all formats of text items (RTF, HTML, …) — larger file. Images are always included."),
                                 target: nil, action: nil)
         let accessory = NSView(frame: NSRect(x: 0, y: 0, width: checkbox.fittingSize.width + 40, height: 36))
         checkbox.frame.origin = NSPoint(x: 20, y: 8)
@@ -584,15 +581,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             switch result {
             case .success(let count):
                 let alert = NSAlert()
-                alert.messageText = "Exported \(count) items"
-                alert.informativeText = "\(url.path)\n\nThe file isn't encrypted and may contain passwords or other secrets you copied."
-                alert.addButton(withTitle: "Show in Finder")
-                alert.addButton(withTitle: "OK")
+                alert.messageText = L("Exported %@ items", String(count))
+                alert.informativeText = url.path + "\n\n" + L("The file isn't encrypted and may contain passwords or other secrets you copied.")
+                alert.addButton(withTitle: L("Show in Finder"))
+                alert.addButton(withTitle: L("OK"))
                 if alert.runModal() == .alertFirstButtonReturn {
                     NSWorkspace.shared.activateFileViewerSelecting([url])
                 }
             case .failure(let error):
-                self?.showError("Export failed", "\(error)")
+                self?.showError(L("Export failed"), "\(error)")
             }
         }
     }
@@ -602,7 +599,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         NSApp.activate(ignoringOtherApps: true)
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [.json]
-        panel.message = "Choose a file made with Export as JSON…. Items you already have are merged, not duplicated."
+        panel.message = L("Choose a file made with Export as JSON…. Items you already have are merged, not duplicated.")
         guard panel.runModal() == .OK, let url = panel.url else { return }
         isImporting = true
         HistoryImport.run(from: url, into: store, maxItemBytes: config.maxItemBytes) { [weak self] result in
@@ -613,18 +610,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
                 self.store.prune(maxItems: self.config.maxItems)
                 self.ocr.backfill(again: true)
                 self.history.refreshIfVisible()
-                var lines = ["\(summary.added) added, \(summary.merged) already there (merged)."]
+                var lines = [L("%@ added, %@ already there (merged).", String(summary.added), String(summary.merged))]
                 for (reason, count) in summary.skipped.sorted(by: { $0.value > $1.value }) {
-                    lines.append("\(count) skipped: \(reason)")
+                    lines.append(L("%@ skipped: %@", String(count), reason))
                 }
-                lines.append("History keeps at most \(self.config.maxItems) unpinned items (maxItems), so the oldest imported ones may have been dropped from it. Tagged items are kept in Tagged.")
+                lines.append(L("History keeps at most %@ unpinned items (maxItems), so the oldest imported ones may have been dropped from it. Tagged items are kept in Tagged.", String(self.config.maxItems)))
                 let alert = NSAlert()
-                alert.messageText = "Import finished"
+                alert.messageText = L("Import finished")
                 alert.informativeText = lines.joined(separator: "\n")
                 NSApp.activate(ignoringOtherApps: true)
                 alert.runModal()
             case .failure(let error):
-                self.showError("Import failed", "\(error)")
+                self.showError(L("Import failed"), "\(error)")
             }
         }
     }
@@ -641,7 +638,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
                 try SMAppService.mainApp.register()
             }
         } catch {
-            showError("Could not change the login item", error.localizedDescription)
+            showError(L("Could not change the login item"), error.localizedDescription)
         }
     }
 
@@ -656,12 +653,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             }
             NSApp.activate(ignoringOtherApps: true)
             let alert = NSAlert()
-            alert.messageText = "The clipboard history can't be decrypted"
-            alert.informativeText = "\(error)\n\nThis happens when the history was copied from another Mac or the Keychain was reset. "
-                + "If you can restore the Keychain item, quit and try again. Otherwise start a new, empty history; "
-                + "the unreadable file is kept in the data folder."
-            alert.addButton(withTitle: "Quit")
-            alert.addButton(withTitle: "Start New History")
+            alert.messageText = L("The clipboard history can't be decrypted")
+            alert.informativeText = "\(error)\n\n" + L("This happens when the history was copied from another Mac or the Keychain was reset. If you can restore the Keychain item, quit and try again. Otherwise start a new, empty history; the unreadable file is kept in the data folder.")
+            alert.addButton(withTitle: L("Quit"))
+            alert.addButton(withTitle: L("Start New History"))
             guard alert.runModal() == .alertSecondButtonReturn else { return nil }
             let kept = try DatabaseEncryption.moveAside(url)
             NSLog("Clipsie: moved the unreadable history to \(kept.path)")
