@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Resources/AppIcon.png" width="160" alt="Clipsie, a crocodile peeking over a paper clip">
+  <img src="clipsie-header.png" width="100%" alt="Clipsie, a crocodile peeking over a paper clip">
 </p>
 
 <h1 align="center">Clipsie</h1>
