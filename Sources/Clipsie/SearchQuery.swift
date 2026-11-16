@@ -1,5 +1,9 @@
 import AppKit
 
+enum SearchMode: String, Codable {
+    case exact, fuzzy, regex
+}
+
 struct SearchQuery {
     enum ContentType: String {
         case text, rich, image, file, link, color, other
@@ -10,6 +14,7 @@ struct SearchQuery {
     }
 
     private(set) var terms: [String] = []
+    private(set) var pattern: String?
     private(set) var apps: [String] = []
     private(set) var types: [ContentType] = []
     private(set) var flags: [Flag] = []
@@ -21,10 +26,63 @@ struct SearchQuery {
         !apps.isEmpty || !types.isEmpty || !flags.isEmpty || !tags.isEmpty || after != nil || before != nil
     }
 
-    init(_ query: String, now: Date = Date(), calendar: Calendar = .current) {
+    var isValidPattern: Bool {
+        pattern.map { (try? NSRegularExpression(pattern: $0)) != nil } ?? true
+    }
+
+    init(_ query: String, mode: SearchMode = .exact, now: Date = Date(), calendar: Calendar = .current) {
+        var words: [String] = []
         for word in query.split(whereSeparator: \.isWhitespace).map(String.init) {
-            if !apply(word, now: now, calendar: calendar) { terms.append(word.lowercased()) }
+            if !apply(word, now: now, calendar: calendar) { words.append(word) }
         }
+        if mode == .regex {
+            pattern = words.isEmpty ? nil : words.joined(separator: " ")
+        } else {
+            terms = words.map { $0.lowercased() }
+        }
+    }
+
+    static let fuzzyTextLimit = 10_000
+
+    static func fuzzyMatch(_ text: String, _ term: String) -> Bool {
+        if text.contains(term) { return true }
+        let target = Array(term.unicodeScalars)
+        let allowed = target.count >= 8 ? 2 : (target.count >= 4 ? 1 : 0)
+        guard allowed > 0 else { return false }
+        var word: [Unicode.Scalar] = []
+        for scalar in text.unicodeScalars.prefix(fuzzyTextLimit) {
+            if CharacterSet.alphanumerics.contains(scalar) {
+                word.append(scalar)
+                continue
+            }
+            if editDistance(word, target, atMost: allowed) { return true }
+            word.removeAll(keepingCapacity: true)
+        }
+        return editDistance(word, target, atMost: allowed)
+    }
+
+    private static func editDistance(_ a: [Unicode.Scalar], _ b: [Unicode.Scalar], atMost limit: Int) -> Bool {
+        guard !a.isEmpty, abs(a.count - b.count) <= limit else { return false }
+        var beforePrevious = [Int](repeating: 0, count: b.count + 1)
+        var previous = Array(0...b.count)
+        var current = [Int](repeating: 0, count: b.count + 1)
+        var previousMinimum = 0
+        for i in 1...a.count {
+            current[0] = i
+            var rowMinimum = i
+            for j in 1...b.count {
+                var value = min(previous[j] + 1, current[j - 1] + 1, previous[j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1))
+                if i > 1, j > 1, a[i - 1] == b[j - 2], a[i - 2] == b[j - 1] {
+                    value = min(value, beforePrevious[j - 2] + 1)
+                }
+                current[j] = value
+                rowMinimum = min(rowMinimum, value)
+            }
+            if rowMinimum > limit && previousMinimum > limit { return false }
+            previousMinimum = rowMinimum
+            (beforePrevious, previous, current) = (previous, current, beforePrevious)
+        }
+        return previous[b.count] <= limit
     }
 
     private mutating func apply(_ word: String, now: Date, calendar: Calendar) -> Bool {

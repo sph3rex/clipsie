@@ -222,3 +222,7 @@
 "Remove tracking parameters from copied links" = "Elimină parametrii de urmărire din linkurile copiate";
 "text, rich, image, file, link, color, other" = "text, rich, image, file, link, color, other";
 "md5, sha1, sha256, sha384, sha512" = "md5, sha1, sha256, sha384, sha512";
+"fuzzy search" = "căutare aproximativă";
+"regex search" = "căutare regex";
+"invalid regular expression" = "expresie regulată nevalidă";
+"searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "searchMode în config.json: exact (implicit), fuzzy (tolerează greșelile de tastare) sau regex (textul este o expresie regulată).";

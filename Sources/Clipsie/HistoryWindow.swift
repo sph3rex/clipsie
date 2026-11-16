@@ -42,6 +42,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         didSet { rebuildSearchButtons() }
     }
     var linkPreviews = false
+    var searchMode = SearchMode.exact
     var showsPreview = true {
         didSet {
             previewContainer.isHidden = !showsPreview
@@ -428,8 +429,14 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         case .images:
             hint = L("↩ paste · ?? help · ⇧↩ paste the text in the image · ⌘I important · ⌘L tags · ⌘P pin · ⌘⌫ delete · ⇥ next list")
         }
-        let search = SearchQuery(searchField.stringValue)
-        let filters = search.hasFilters ? " · " + search.filterSummary : ""
+        let search = SearchQuery(searchField.stringValue, mode: searchMode)
+        var notes = search.hasFilters ? [search.filterSummary] : []
+        switch searchMode {
+        case .exact: break
+        case .fuzzy: notes.append(L("fuzzy search"))
+        case .regex: notes.append(search.isValidPattern ? L("regex search") : L("invalid regular expression"))
+        }
+        let filters = notes.map { " · " + $0 }.joined()
         statusLabel.stringValue = L("%@ items", String(ids.count)) + filters + " — " + hint
     }
 

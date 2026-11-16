@@ -105,7 +105,7 @@ Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` 
 
 ## Settings
 
-Menu bar icon → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
+Menu bar icon → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), deleting everything when Clipsie quits (`clearHistoryOnQuit`) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
 
 ## Privacy
 

@@ -64,6 +64,12 @@ struct Config: Codable {
         SearchProvider(name: "Claude", url: "https://claude.ai/new?q={q}", symbol: "asterisk"),
     ]
     var linkPreviews = false
+    var searchMode = SearchMode.exact
+    var saveText = true
+    var saveImages = true
+    var saveFiles = true
+    var clearHistoryOnQuit = false
+    var keepTagsOnQuit = [Store.importantTag]
     var ocr = true
     var ocrLanguages: [String] = []
     var pollInterval = 0.3
@@ -97,6 +103,12 @@ struct Config: Codable {
         quickPasteModifiers = try c.decodeIfPresent(String.self, forKey: .quickPasteModifiers) ?? d.quickPasteModifiers
         searchProviders = try c.decodeIfPresent([SearchProvider].self, forKey: .searchProviders) ?? d.searchProviders
         linkPreviews = try c.decodeIfPresent(Bool.self, forKey: .linkPreviews) ?? d.linkPreviews
+        searchMode = try c.decodeIfPresent(SearchMode.self, forKey: .searchMode) ?? d.searchMode
+        saveText = try c.decodeIfPresent(Bool.self, forKey: .saveText) ?? d.saveText
+        saveImages = try c.decodeIfPresent(Bool.self, forKey: .saveImages) ?? d.saveImages
+        saveFiles = try c.decodeIfPresent(Bool.self, forKey: .saveFiles) ?? d.saveFiles
+        clearHistoryOnQuit = try c.decodeIfPresent(Bool.self, forKey: .clearHistoryOnQuit) ?? d.clearHistoryOnQuit
+        keepTagsOnQuit = try c.decodeIfPresent([String].self, forKey: .keepTagsOnQuit) ?? d.keepTagsOnQuit
         ocr = try c.decodeIfPresent(Bool.self, forKey: .ocr) ?? d.ocr
         ocrLanguages = try c.decodeIfPresent([String].self, forKey: .ocrLanguages) ?? d.ocrLanguages
         pollInterval = try c.decodeIfPresent(Double.self, forKey: .pollInterval) ?? d.pollInterval

@@ -222,3 +222,7 @@
 "Remove tracking parameters from copied links" = "Retirer les paramètres de suivi des liens copiés";
 "text, rich, image, file, link, color, other" = "text, rich, image, file, link, color, other";
 "md5, sha1, sha256, sha384, sha512" = "md5, sha1, sha256, sha384, sha512";
+"fuzzy search" = "recherche approximative";
+"regex search" = "recherche par regex";
+"invalid regular expression" = "expression régulière non valide";
+"searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "searchMode dans config.json : exact (par défaut), fuzzy (tolère les fautes de frappe) ou regex (le texte est une expression régulière).";

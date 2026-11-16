@@ -3,6 +3,40 @@ import CSQLCipher
 
 private let SQLITE_TRANSIENT = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
 
+private func sqlText(_ value: OpaquePointer?) -> String? {
+    sqlite3_value_text(value).map { String(cString: $0) }
+}
+
+private let regexpFunction: @convention(c) (OpaquePointer?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Void = { context, _, arguments in
+    guard let arguments, let pattern = sqlText(arguments[0]), let text = sqlText(arguments[1]) else {
+        sqlite3_result_int(context, 0)
+        return
+    }
+    let regex: NSRegularExpression
+    if let cached = sqlite3_get_auxdata(context, 0) {
+        regex = Unmanaged<NSRegularExpression>.fromOpaque(cached).takeUnretainedValue()
+    } else {
+        guard let compiled = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive, .anchorsMatchLines]) else {
+            sqlite3_result_int(context, 0)
+            return
+        }
+        regex = compiled
+        sqlite3_set_auxdata(context, 0, Unmanaged.passRetained(compiled).toOpaque()) { pointer in
+            if let pointer { Unmanaged<NSRegularExpression>.fromOpaque(pointer).release() }
+        }
+    }
+    let found = regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
+    sqlite3_result_int(context, found ? 1 : 0)
+}
+
+private let fuzzyFunction: @convention(c) (OpaquePointer?, Int32, UnsafeMutablePointer<OpaquePointer?>?) -> Void = { context, _, arguments in
+    guard let arguments, let text = sqlText(arguments[0]), let term = sqlText(arguments[1]) else {
+        sqlite3_result_int(context, 0)
+        return
+    }
+    sqlite3_result_int(context, SearchQuery.fuzzyMatch(text, term) ? 1 : 0)
+}
+
 enum HistoryTab: CaseIterable {
     case history, images, tagged
 }
@@ -20,6 +54,7 @@ final class Store {
     private let queue = DispatchQueue(label: "clipsie.store")
     private var prunesSinceVacuum = 0
     private var ftsReady = false
+    private var searchMode = SearchMode.exact
     private static let ftsBatchSize = 500
 
     init(url: URL, key: Data) throws {
@@ -28,6 +63,11 @@ final class Store {
             throw StoreError(description: "Cannot open \(url.path): \(lastError)")
         }
         try exec(DatabaseEncryption.keyPragma(key))
+        for (name, function) in [("clipsie_regexp", regexpFunction), ("clipsie_fuzzy", fuzzyFunction)] {
+            guard sqlite3_create_function_v2(db, name, 2, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nil, function, nil, nil, nil) == SQLITE_OK else {
+                throw StoreError(description: "Cannot register \(name): \(lastError)")
+            }
+        }
         do {
             try exec("SELECT COUNT(*) FROM sqlite_master")
         } catch {
@@ -238,6 +278,10 @@ final class Store {
                 return nil
             }
         }
+    }
+
+    func setSearchMode(_ mode: SearchMode) {
+        queue.async { self.searchMode = mode }
     }
 
     func prune(maxItems: Int) {
@@ -487,6 +531,18 @@ final class Store {
         }
     }
 
+    func clearEverything(keepingTags names: [String]) {
+        let placeholders = Array(repeating: "?", count: names.count).joined(separator: ",")
+        queue.sync {
+            attempt {
+                try run("DELETE FROM items WHERE id NOT IN (SELECT item_id FROM item_tags JOIN tags ON tags.id = tag_id"
+                    + " WHERE tags.name IN (\(placeholders)))", names.map { .text($0) })
+                try deleteUnusedTags()
+                try exec("PRAGMA incremental_vacuum")
+            }
+        }
+    }
+
     func replace(id: Int64, with capture: Capture, moveToTop: Bool = true) {
         queue.sync {
             attempt {
@@ -710,13 +766,24 @@ final class Store {
     }
 
     private func searchIDs(_ query: String, _ tab: HistoryTab) throws -> [Int64] {
-        let search = SearchQuery(query)
+        let search = SearchQuery(query, mode: searchMode)
+        guard search.isValidPattern else { return [] }
         var conditions = [Self.filter(tab)]
         var params: [SQLValue] = []
         let titleMatch = "instr(lower(COALESCE(items.title, '')), ?) > 0"
         var scansText = false
+        if let pattern = search.pattern {
+            scansText = true
+            conditions.append("(clipsie_regexp(?, t.search) OR clipsie_regexp(?, COALESCE(items.title, '')))")
+            params += [SQLValue.text(pattern), .text(pattern)]
+        }
         for term in search.terms {
-            if ftsReady && term.unicodeScalars.count >= 3 {
+            if searchMode == .fuzzy {
+                scansText = true
+                conditions.append("(instr(t.search, ?) > 0 OR \(titleMatch) OR clipsie_fuzzy(t.search, ?)"
+                    + " OR clipsie_fuzzy(lower(COALESCE(items.title, '')), ?))")
+                params += [SQLValue.text(term), .text(term), .text(term), .text(term)]
+            } else if ftsReady && term.unicodeScalars.count >= 3 {
                 conditions.append("(items.id IN (SELECT rowid FROM item_fts WHERE search LIKE ? AND instr(search, ?) > 0)"
                     + " OR \(titleMatch))")
                 params += [SQLValue.text("%" + term + "%"), .text(term), .text(term)]

@@ -113,6 +113,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         history.commands = commands.filter { $0.type == .menu }
         history.showsPreview = config.showPreview
         history.linkPreviews = config.linkPreviews
+        history.searchMode = config.searchMode
+        store.setSearchMode(config.searchMode)
         history.searchProviders = config.searchProviders
         history.plugins = Plugins.load()
         if config.quickPasteModifiers.isEmpty {
@@ -204,9 +206,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     }
 
     private func save(_ capture: Capture) {
+        guard shouldSave(capture) else { return }
         let id = store.save(capture, maxItems: config.maxItems)
         if let id, Content.imageData(capture.representations) != nil { ocr.recognize(id) }
         history.refreshIfVisible()
+    }
+
+    private func shouldSave(_ capture: Capture) -> Bool {
+        switch capture.kind {
+        case .text, .richText: return config.saveText
+        case .image: return config.saveImages
+        case .files: return config.saveFiles
+        case .other: return true
+        }
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        if config.clearHistoryOnQuit { store?.clearEverything(keepingTags: config.keepTagsOnQuit) }
     }
 
     func paste(itemID: Int64, plainText: Bool, target: NSRunningApplication?) {

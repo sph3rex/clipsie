@@ -41,6 +41,7 @@ enum Help {
         row("date:today", "also yesterday, week, month, 2026-10-20")
         row("after:2026-10-01", "and before:2026-10-15")
         row("invoice app:mail tag:work", "example")
+        note("searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression).")
 
         heading("Keys")
         row("↩  ⇧↩", "paste · paste as plain text (an image: the text in it)")
