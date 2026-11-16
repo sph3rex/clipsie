@@ -119,6 +119,16 @@ struct Config: Codable {
         ignoredApps = try c.decodeIfPresent([String].self, forKey: .ignoredApps) ?? d.ignoredApps
     }
 
+    static func set(_ key: String, to value: Any) throws {
+        guard let object = try JSONSerialization.jsonObject(with: Data(contentsOf: AppPaths.config)) as? [String: Any] else {
+            throw StoreError(description: "config.json doesn't contain a JSON object")
+        }
+        var updated = object
+        updated[key] = value
+        try JSONSerialization.data(withJSONObject: updated, options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+            .write(to: AppPaths.config, options: .atomic)
+    }
+
     static func load() throws -> Config {
         if !FileManager.default.fileExists(atPath: AppPaths.config.path) {
             let encoder = JSONEncoder()

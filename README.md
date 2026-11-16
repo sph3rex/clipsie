@@ -94,7 +94,7 @@ Mix them with normal words, in any order: `invoice app:mail date:week`.
 
 ## Commands
 
-Commands live in `commands.json` (menu bar icon → Edit Commands…) and are a line of JavaScript that gets the item's text as `text`:
+Commands live in `commands.json` (menu bar icon → Configuration → Edit Commands…) and are a line of JavaScript that gets the item's text as `text`:
 
 ```json
 {"name": "Sort lines", "script": "text.split('\\n').sort().join('\\n')", "output": "paste", "shortcut": "cmd+shift+s"}
@@ -105,7 +105,7 @@ Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` 
 
 ## Settings
 
-Menu bar icon → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), deleting everything when Clipsie quits (`clearHistoryOnQuit`) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
+Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
 
 ## Privacy
 
@@ -113,7 +113,7 @@ Menu bar icon → Edit Settings… opens `config.json`: shortcuts, history size 
 - **Skips secrets.** Copies that password managers mark as concealed or transient are never recorded, nor is anything from apps in `ignoredApps`. A default command skips one-time codes.
 - **Stays on your Mac.** Clipsie makes no network requests of its own, except to load the icons of the web-search buttons and, only if you turn on `linkPreviews`, the title of a selected link.
 - **Sandboxed scripts.** JavaScript commands and plugins can't read files or use the network. Shell commands are possible too, for menu commands only, and are marked ⚠︎ because they are not sandboxed.
-- **Export** (menu bar icon → Export as JSON…) writes an unencrypted file, for backups or moving to another Mac; Import reads it back.
+- **Export** (menu bar icon → Import & Export → Export as JSON…) writes an unencrypted file, for backups or moving to another Mac; Import reads it back.
 
 ## Uninstall
 

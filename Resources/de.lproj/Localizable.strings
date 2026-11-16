@@ -70,12 +70,12 @@
 "Keys" = "Tasten";
 "Tags" = "Tags";
 "Tagged items are listed in Tagged and kept there when they leave History (pruning, delete, Clear History). The tag “important” exists from the start. Click a tag below the preview to search for it." = "Einträge mit Tags stehen unter „Mit Tags“ und bleiben dort, wenn sie den Verlauf verlassen (Kürzen, Löschen, Verlauf löschen). Den Tag „important“ gibt es von Anfang an. Klicke unter der Vorschau auf einen Tag, um danach zu suchen.";
-"Commands — commands.json (menu bar → Edit Commands…)" = "Befehle – commands.json (Menüleiste → Befehle bearbeiten …)";
+"Commands — commands.json (menu bar → Configuration → Edit Commands…)" = "Befehle – commands.json (Menüleiste → Konfiguration → Befehle bearbeiten …)";
 "A command is a line of JavaScript, run sandboxed. It gets the item's text as `text` and returns the result. Longer scripts need `return`. After editing: menu bar → Reload Settings & Commands." = "Ein Befehl ist eine Zeile JavaScript, die in der Sandbox läuft. Er bekommt den Text des Eintrags als `text` und gibt das Ergebnis zurück. Längere Skripte brauchen `return`. Nach dem Bearbeiten: Menüleiste → Einstellungen & Befehle neu laden.";
 "replace('-', '') changes only the first match: use replaceAll, or a regex with g like /-/g. In JSON, a \\n meant for JavaScript is written \\\\n." = "replace('-', '') ändert nur den ersten Treffer: verwende replaceAll oder eine Regex mit g wie /-/g. In JSON wird ein \\n für JavaScript als \\\\n geschrieben.";
 "Plugins — plugins/ in the data folder" = "Plug-ins – plugins/ im Datenordner";
 "A .js file gets the search text as `text` and returns a string or { value, title }; its row is shown on top. The built-in calculator: 3 plus 4, 15% of 80, 2^10, 5 km in miles, 100 f to c." = "Eine .js-Datei bekommt den Suchtext als `text` und gibt einen String oder { value, title } zurück; ihre Zeile erscheint oben. Der eingebaute Rechner (englische Wörter): 3 plus 4, 15% of 80, 2^10, 5 km in miles, 100 f to c.";
-"Files — menu bar → Open Data Folder" = "Dateien – Menüleiste → Datenordner öffnen";
+"Files — menu bar → Configuration → Open Data Folder" = "Dateien – Menüleiste → Konfiguration → Datenordner öffnen";
 "config.json (settings), commands.json, plugins/, scripts/ (for \"scriptFile\"). The history itself is encrypted." = "config.json (Einstellungen), commands.json, plugins/, scripts/ (für \"scriptFile\"). Der Verlauf selbst ist verschlüsselt.";
 "items tagged work (the start is enough: tag:wo)" = "Einträge mit dem Tag work (der Anfang genügt: tag:wo)";
 "copied from an app (bundle id or name)" = "aus einer App kopiert (Bundle-ID oder Name)";
@@ -226,3 +226,10 @@
 "regex search" = "Regex-Suche";
 "invalid regular expression" = "ungültiger regulärer Ausdruck";
 "searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "searchMode in config.json: exact (Standard), fuzzy (verzeiht Tippfehler) oder regex (der Text ist ein regulärer Ausdruck).";
+"Clear on Quit" = "Beim Beenden leeren";
+"Could not change config.json" = "config.json konnte nicht geändert werden";
+"When Clipsie quits, delete everything except items tagged %@." = "Beim Beenden von Clipsie alles löschen außer Einträgen mit Tag %@.";
+"When Clipsie quits, delete everything." = "Beim Beenden von Clipsie alles löschen.";
+"Import & Export" = "Import & Export";
+"Configuration" = "Konfiguration";
+"Cleanup" = "Aufräumen";

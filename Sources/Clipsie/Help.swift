@@ -65,7 +65,7 @@ enum Help {
         note("Tagged items are listed in Tagged and kept there when they leave History (pruning, delete, Clear History). "
             + "The tag “important” exists from the start. Click a tag below the preview to search for it.")
 
-        heading("Commands — commands.json (menu bar → Edit Commands…)")
+        heading("Commands — commands.json (menu bar → Configuration → Edit Commands…)")
         note("A command is a line of JavaScript, run sandboxed. It gets the item's text as `text` and returns the result. "
             + "Longer scripts need `return`. After editing: menu bar → Reload Settings & Commands.")
         code(#"{"name": "UUID without dashes", "input": "none", "script": "clip.uuid().replaceAll('-', '')", "output": "paste"}"#)
@@ -89,7 +89,7 @@ enum Help {
         note("A .js file gets the search text as `text` and returns a string or { value, title }; its row is shown on top. "
             + "The built-in calculator: 3 plus 4, 15% of 80, 2^10, 5 km in miles, 100 f to c.")
 
-        heading("Files — menu bar → Open Data Folder")
+        heading("Files — menu bar → Configuration → Open Data Folder")
         note("config.json (settings), commands.json, plugins/, scripts/ (for \"scriptFile\"). The history itself is encrypted.")
         return result
     }

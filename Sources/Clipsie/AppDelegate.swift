@@ -489,22 +489,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         let hotkey = Shortcut(config.historyHotkey)?.display ?? config.historyHotkey
         addMenuItem(to: menu, L("Show History…") + "   " + hotkey, #selector(showHistoryFromMenu))
         addMenuItem(to: menu, L("Pause Capturing"), #selector(togglePause)).state = monitor.isPaused ? .on : .off
-        addMenuItem(to: menu, L("Clear History…"), #selector(clearHistory))
-        addMenuItem(to: menu, L("Remove Duplicates…"), #selector(removeDuplicates))
-        addMenuItem(to: menu, L("Export as JSON…"), #selector(exportHistory))
-        addMenuItem(to: menu, isImporting ? L("Importing…") : L("Import from JSON…"), #selector(importHistory))
+        addSubmenu(to: menu, L("Cleanup")) { submenu in
+            addMenuItem(to: submenu, L("Clear History…"), #selector(clearHistory))
+            addMenuItem(to: submenu, L("Remove Duplicates…"), #selector(removeDuplicates))
+        }
+        addSubmenu(to: menu, L("Import & Export")) { submenu in
+            addMenuItem(to: submenu, L("Export as JSON…"), #selector(exportHistory))
+            addMenuItem(to: submenu, isImporting ? L("Importing…") : L("Import from JSON…"), #selector(importHistory))
+        }
         menu.addItem(.separator())
-        addMenuItem(to: menu, L("Edit Settings…"), #selector(openConfig))
-        addMenuItem(to: menu, L("Edit Commands…"), #selector(openCommands))
+        addSubmenu(to: menu, L("Configuration")) { submenu in
+            addMenuItem(to: submenu, L("Edit Settings…"), #selector(openConfig))
+            addMenuItem(to: submenu, L("Edit Commands…"), #selector(openCommands))
+            addMenuItem(to: submenu, L("Open Data Folder"), #selector(openDataFolder))
+        }
         addMenuItem(to: menu, L("Reload Settings & Commands"), #selector(reloadSettings))
-        addMenuItem(to: menu, L("Open Data Folder"), #selector(openDataFolder))
         addMenuItem(to: menu, L("Launch at Login"), #selector(toggleLaunchAtLogin)).state =
             SMAppService.mainApp.status == .enabled ? .on : .off
+        let clearOnQuit = addMenuItem(to: menu, L("Clear on Quit"), #selector(toggleClearOnQuit))
+        clearOnQuit.state = config.clearHistoryOnQuit ? .on : .off
+        clearOnQuit.toolTip = config.keepTagsOnQuit.isEmpty
+            ? L("When Clipsie quits, delete everything.")
+            : L("When Clipsie quits, delete everything except items tagged %@.", config.keepTagsOnQuit.joined(separator: ", "))
         menu.addItem(.separator())
         addMenuItem(to: menu, L("Quit"), #selector(NSApplication.terminate(_:)), target: NSApp)
     }
 
     @discardableResult
+    private func addSubmenu(to menu: NSMenu, _ title: String, _ fill: (NSMenu) -> Void) {
+        let submenu = NSMenu()
+        fill(submenu)
+        let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+        item.submenu = submenu
+        menu.addItem(item)
+    }
+
     private func addMenuItem(to menu: NSMenu, _ title: String, _ action: Selector, target: AnyObject? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = target ?? self
@@ -645,6 +664,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     @objc private func openConfig() { NSWorkspace.shared.open(AppPaths.config) }
     @objc private func openCommands() { NSWorkspace.shared.open(AppPaths.commands) }
     @objc private func openDataFolder() { NSWorkspace.shared.open(AppPaths.support) }
+
+    @objc private func toggleClearOnQuit() {
+        do {
+            try Config.set("clearHistoryOnQuit", to: !config.clearHistoryOnQuit)
+            config.clearHistoryOnQuit.toggle()
+        } catch {
+            showError(L("Could not change config.json"), "\(error)")
+        }
+    }
 
     @objc private func toggleLaunchAtLogin() {
         do {

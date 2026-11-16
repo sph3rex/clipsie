@@ -70,12 +70,12 @@
 "Keys" = "Taste";
 "Tags" = "Etichete";
 "Tagged items are listed in Tagged and kept there when they leave History (pruning, delete, Clear History). The tag “important” exists from the start. Click a tag below the preview to search for it." = "Elementele etichetate apar în Etichetate și rămân acolo când ies din istoric (curățare, ștergere, Golește istoricul). Eticheta „important” există de la început. Dă clic pe o etichetă sub previzualizare pentru a o căuta.";
-"Commands — commands.json (menu bar → Edit Commands…)" = "Comenzi — commands.json (bara de meniu → Editează comenzile…)";
+"Commands — commands.json (menu bar → Configuration → Edit Commands…)" = "Comenzi — commands.json (bara de meniu → Configurare → Editează comenzile…)";
 "A command is a line of JavaScript, run sandboxed. It gets the item's text as `text` and returns the result. Longer scripts need `return`. After editing: menu bar → Reload Settings & Commands." = "O comandă este o linie de JavaScript rulată în sandbox. Primește textul elementului ca `text` și returnează rezultatul. Scripturile mai lungi au nevoie de `return`. După editare: bara de meniu → Reîncarcă setările și comenzile.";
 "replace('-', '') changes only the first match: use replaceAll, or a regex with g like /-/g. In JSON, a \\n meant for JavaScript is written \\\\n." = "replace('-', '') schimbă doar prima potrivire: folosește replaceAll sau o regex cu g, ca /-/g. În JSON, un \\n pentru JavaScript se scrie \\\\n.";
 "Plugins — plugins/ in the data folder" = "Pluginuri — plugins/ în dosarul de date";
 "A .js file gets the search text as `text` and returns a string or { value, title }; its row is shown on top. The built-in calculator: 3 plus 4, 15% of 80, 2^10, 5 km in miles, 100 f to c." = "Un fișier .js primește textul căutat ca `text` și returnează un șir sau { value, title }; rândul lui apare sus. Calculatorul încorporat (cuvinte în engleză): 3 plus 4, 15% of 80, 2^10, 5 km in miles, 100 f to c.";
-"Files — menu bar → Open Data Folder" = "Fișiere — bara de meniu → Deschide dosarul de date";
+"Files — menu bar → Configuration → Open Data Folder" = "Fișiere — bara de meniu → Configurare → Deschide dosarul de date";
 "config.json (settings), commands.json, plugins/, scripts/ (for \"scriptFile\"). The history itself is encrypted." = "config.json (setări), commands.json, plugins/, scripts/ (pentru \"scriptFile\"). Istoricul în sine este criptat.";
 "items tagged work (the start is enough: tag:wo)" = "elemente cu eticheta work (ajunge începutul: tag:wo)";
 "copied from an app (bundle id or name)" = "copiate dintr-o aplicație (ID de pachet sau nume)";
@@ -226,3 +226,10 @@
 "regex search" = "căutare regex";
 "invalid regular expression" = "expresie regulată nevalidă";
 "searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "searchMode în config.json: exact (implicit), fuzzy (tolerează greșelile de tastare) sau regex (textul este o expresie regulată).";
+"Clear on Quit" = "Golește la ieșire";
+"Could not change config.json" = "config.json nu a putut fi modificat";
+"When Clipsie quits, delete everything except items tagged %@." = "La ieșirea din Clipsie, șterge tot, cu excepția elementelor cu eticheta %@.";
+"When Clipsie quits, delete everything." = "La ieșirea din Clipsie, șterge tot.";
+"Import & Export" = "Import și export";
+"Configuration" = "Configurare";
+"Cleanup" = "Curățare";
