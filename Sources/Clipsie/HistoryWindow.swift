@@ -11,6 +11,7 @@ protocol HistoryActions: AnyObject {
     func copyText(_ text: String)
     func pasteItems(_ ids: [Int64], target: NSRunningApplication?)
     func run(_ command: UserCommand, itemID: Int64?, target: NSRunningApplication?)
+    func setSearchMode(_ mode: SearchMode)
 }
 
 final class HistoryPanel: NSPanel {
@@ -42,7 +43,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         didSet { rebuildSearchButtons() }
     }
     var linkPreviews = false
-    var searchMode = SearchMode.exact
+    var searchMode = SearchMode.exact {
+        didSet { updateSearchIcon() }
+    }
     var showsPreview = true {
         didSet {
             previewContainer.isHidden = !showsPreview
@@ -54,7 +57,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private let tabControl = NSSegmentedControl(labels: [L("History"), L("Images"), L("Tagged")],
                                                 trackingMode: .selectOne, target: nil, action: nil)
     private static let tabs: [HistoryTab] = [.history, .images, .tagged]
-    private let searchIcon = NSImageView()
+    private let searchIcon = NSButton()
     private let searchField = NSTextField()
     private let paletteButton = NSButton()
     private let tableView = NSTableView()
@@ -196,9 +199,14 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         content.state = .active
         panel.contentView = content
 
-        searchIcon.image = NSImage(systemSymbolName: "magnifyingglass", accessibilityDescription: nil)
         searchIcon.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 20, weight: .regular)
         searchIcon.contentTintColor = .secondaryLabelColor
+        searchIcon.isBordered = false
+        searchIcon.imagePosition = .imageOnly
+        searchIcon.refusesFirstResponder = true
+        searchIcon.target = self
+        searchIcon.action = #selector(showSearchModeMenu)
+        updateSearchIcon()
 
         searchField.isBezeled = false
         searchField.isBordered = false
@@ -366,6 +374,40 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             statusLabel.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
             statusLabel.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -8),
         ])
+    }
+
+    private static var searchModes: [(mode: SearchMode, title: String, symbol: String)] {
+        [
+            (.exact, L("Exact"), "magnifyingglass"),
+            (.fuzzy, L("Fuzzy (tolerates typos)"), "sparkle.magnifyingglass"),
+            (.regex, L("Regular expression"), "text.magnifyingglass"),
+        ]
+    }
+
+    private func updateSearchIcon() {
+        guard let current = Self.searchModes.first(where: { $0.mode == searchMode }) else { return }
+        searchIcon.image = NSImage(systemSymbolName: current.symbol, accessibilityDescription: current.title)
+        searchIcon.toolTip = L("Search mode: %@ — click to change", current.title)
+    }
+
+    @objc private func showSearchModeMenu() {
+        let menu = NSMenu()
+        for entry in Self.searchModes {
+            let item = NSMenuItem(title: entry.title, action: #selector(searchModeChosen(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = entry.mode.rawValue
+            item.state = entry.mode == searchMode ? .on : .off
+            menu.addItem(item)
+        }
+        menu.popUp(positioning: nil, at: NSPoint(x: 0, y: searchIcon.isFlipped ? searchIcon.bounds.maxY + 4 : -4), in: searchIcon)
+    }
+
+    @objc private func searchModeChosen(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String, let mode = SearchMode(rawValue: raw) else { return }
+        actions?.setSearchMode(mode)
+        window?.makeFirstResponder(searchField)
+        if paletteCommands == nil, !isShowingHelp { runSearch(selecting: selectedID) }
+        updateStatus()
     }
 
     private func updatePaletteHelp() {

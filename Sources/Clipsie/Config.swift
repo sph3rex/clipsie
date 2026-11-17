@@ -76,6 +76,7 @@ struct Config: Codable {
     var pasteDelayMs = 50
     var pasteDelayMsByApp: [String: Int] = ["com.jetbrains.": 250, "com.google.android.studio": 250]
     var pasteShortcutByApp: [String: String] = [:]
+    var mergeCopiesWithinMsByApp: [String: Int] = ["com.jetbrains.": 1000]
     var plainTextApps: [String] = []
     var ignoredApps: [String] = [
         "com.1password.1password",
@@ -115,6 +116,8 @@ struct Config: Codable {
         pasteDelayMs = try c.decodeIfPresent(Int.self, forKey: .pasteDelayMs) ?? d.pasteDelayMs
         pasteDelayMsByApp = try c.decodeIfPresent([String: Int].self, forKey: .pasteDelayMsByApp) ?? d.pasteDelayMsByApp
         pasteShortcutByApp = try c.decodeIfPresent([String: String].self, forKey: .pasteShortcutByApp) ?? d.pasteShortcutByApp
+        mergeCopiesWithinMsByApp = try c.decodeIfPresent([String: Int].self, forKey: .mergeCopiesWithinMsByApp)
+            ?? d.mergeCopiesWithinMsByApp
         plainTextApps = try c.decodeIfPresent([String].self, forKey: .plainTextApps) ?? d.plainTextApps
         ignoredApps = try c.decodeIfPresent([String].self, forKey: .ignoredApps) ?? d.ignoredApps
     }

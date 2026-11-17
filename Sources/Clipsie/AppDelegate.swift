@@ -23,6 +23,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     private var statusItem: NSStatusItem!
     private var menuTargetApp: NSRunningApplication?
     private var isImporting = false
+    private var lastCopy: (id: Int64, text: String, app: String?, at: Date)?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         signal(SIGPIPE, SIG_IGN)
@@ -185,7 +186,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
 
     private func runAutomatic(_ remaining: ArraySlice<UserCommand>, on capture: Capture) {
         guard let command = remaining.first else {
-            save(capture)
+            save(capture, mergingQuickCopies: true)
             return
         }
         let started = execute(command, input: capture.text ?? "", itemID: nil, sourceApp: capture.sourceApp,
@@ -205,9 +206,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         if !started && !command.ignore { runAutomatic(remaining.dropFirst(), on: capture) }
     }
 
-    private func save(_ capture: Capture) {
+    private func save(_ capture: Capture, mergingQuickCopies: Bool = false) {
         guard shouldSave(capture) else { return }
-        let id = store.save(capture, maxItems: config.maxItems)
+        let id: Int64?
+        let windowMs = Paster.bestMatch(in: config.mergeCopiesWithinMsByApp, for: capture.sourceApp) ?? 0
+        if mergingQuickCopies, let last = lastCopy, let text = capture.text, last.app == capture.sourceApp,
+           Date().timeIntervalSince(last.at) * 1000 < Double(windowMs), text.contains(last.text) || last.text.contains(text),
+           !store.rows(ids: [last.id]).isEmpty {
+            store.replace(id: last.id, with: capture)
+            id = last.id
+        } else {
+            id = store.save(capture, maxItems: config.maxItems)
+        }
+        if mergingQuickCopies {
+            lastCopy = id.flatMap { id in capture.text.map { (id: id, text: $0, app: capture.sourceApp, at: Date()) } }
+        }
         if let id, Content.imageData(capture.representations) != nil { ocr.recognize(id) }
         history.refreshIfVisible()
     }
@@ -280,6 +293,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             return
         }
         store.touch(itemID)
+    }
+
+    func setSearchMode(_ mode: SearchMode) {
+        do {
+            try Config.set("searchMode", to: mode.rawValue)
+        } catch {
+            showError(L("Could not change config.json"), "\(error)")
+            return
+        }
+        config.searchMode = mode
+        store.setSearchMode(mode)
+        history.searchMode = mode
     }
 
     func run(_ command: UserCommand, itemID: Int64?, target: NSRunningApplication?) {
@@ -515,7 +540,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         addMenuItem(to: menu, L("Quit"), #selector(NSApplication.terminate(_:)), target: NSApp)
     }
 
-    @discardableResult
     private func addSubmenu(to menu: NSMenu, _ title: String, _ fill: (NSMenu) -> Void) {
         let submenu = NSMenu()
         fill(submenu)
@@ -524,6 +548,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         menu.addItem(item)
     }
 
+    @discardableResult
     private func addMenuItem(to menu: NSMenu, _ title: String, _ action: Selector, target: AnyObject? = nil) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = target ?? self

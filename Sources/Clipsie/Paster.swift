@@ -78,7 +78,7 @@ final class Paster {
         target?.bundleIdentifier ?? NSWorkspace.shared.frontmostApplication?.bundleIdentifier
     }
 
-    private static func bestMatch<T>(in byApp: [String: T], for bundleID: String?) -> T? {
+    static func bestMatch<T>(in byApp: [String: T], for bundleID: String?) -> T? {
         guard let bundleID else { return nil }
         return byApp.filter { bundleID.hasPrefix($0.key) }.max { $0.key.count < $1.key.count }?.value
     }

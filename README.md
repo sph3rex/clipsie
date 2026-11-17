@@ -21,7 +21,7 @@ Clipsie lives in the menu bar and remembers everything you copy: text, formatted
 - **Text in images:** screenshots are searchable by the text in them (recognized on your Mac).
 - **Commands in JavaScript,** run sandboxed: transform an item (trim, change case, hash, Base64, JSON…) or generate something (UUID, password, timestamp), and add your own in a few lines.
 - **Calculator and unit converter** in the search: `15% of 80`, `5 km in miles`, `100 f to c`.
-- **In your language:** English, German, French, Spanish and Romanian, following your macOS language (or per app: System Settings → General → Language & Region → Applications). Search filters and calculator words stay English.
+- **In your language:** English, German, French, Spanish, Romanian, Chinese (Simplified) and Japanese, following your macOS language (or per app: System Settings → General → Language & Region → Applications). Search filters and calculator words stay English.
 - **Private by design:** the history is encrypted on disk, passwords from password managers are never recorded, and nothing leaves your Mac.
 
 ## Install
@@ -56,7 +56,7 @@ cd clipsie
 
 ## Using it
 
-Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar icon). Start typing to search; all words must match. The preview on the right shows the selected item.
+Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar icon). Start typing to search; all words must match. Click the magnifying glass to switch between exact, fuzzy (typo-tolerant) and regular-expression search. The preview on the right shows the selected item.
 
 | Key | Does |
 |---|---|
@@ -105,7 +105,7 @@ Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` 
 
 ## Settings
 
-Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
+Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
 
 ## Privacy
 
@@ -132,7 +132,21 @@ The interface is translated in `Resources/<language>.lproj/Localizable.strings`;
 python3 tools/check-translations.py    # lists, per language, strings missing from the translations
 ```
 
-To add a language, copy one of the files to a new `<code>.lproj` folder, translate the right-hand sides, and add the code to `CFBundleLocalizations` in `Resources/Info.plist`.
+Translations exist for German, French, Spanish, Romanian, Chinese (Simplified) and Japanese. To add a language, copy one of the files to a new `<code>.lproj` folder, translate the right-hand sides, and add the code to `CFBundleLocalizations` in `Resources/Info.plist`.
+
+## In other languages
+
+**Deutsch** — Clipsie ist ein schneller, privater Zwischenablage-Manager für macOS: ein durchsuchbarer Verlauf der Zwischenablage mit Tags, verschlüsselter Speicherung, Texterkennung in Bildern und JavaScript-Befehlen. Installation mit Homebrew (siehe oben); die Oberfläche ist auf Deutsch.
+
+**Français** — Clipsie est un gestionnaire de presse-papiers rapide et privé pour macOS : un historique du presse-papiers consultable, avec tags, stockage chiffré, reconnaissance du texte dans les images et commandes JavaScript. Installation avec Homebrew (voir plus haut) ; l’interface est en français.
+
+**Español** — Clipsie es un gestor del portapapeles rápido y privado para macOS: un historial del portapapeles con búsqueda, etiquetas, almacenamiento cifrado, reconocimiento de texto en imágenes y comandos JavaScript. Se instala con Homebrew (ver arriba); la interfaz está en español.
+
+**Română** — Clipsie este un manager de clipboard rapid și privat pentru macOS: un istoric al clipboardului cu căutare, etichete, stocare criptată, recunoașterea textului din imagini și comenzi JavaScript. Se instalează cu Homebrew (vezi mai sus); interfața este în română.
+
+**简体中文** — Clipsie 是一款快速、注重隐私的 macOS 剪贴板管理器：可搜索的剪贴板历史记录，支持标签、加密存储、图片文字识别（OCR）和 JavaScript 命令。可通过 Homebrew 安装（见上文）；界面支持简体中文。
+
+**日本語** — Clipsie は macOS 用の高速でプライバシーに配慮したクリップボード管理アプリです。検索できるクリップボード履歴、タグ、暗号化された保存、画像内の文字認識（OCR）、JavaScript コマンドに対応しています。Homebrew でインストールできます（上記参照）。日本語の画面に対応しています。
 
 ## License
 

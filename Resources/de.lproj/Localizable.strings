@@ -225,7 +225,6 @@
 "fuzzy search" = "unscharfe Suche";
 "regex search" = "Regex-Suche";
 "invalid regular expression" = "ungültiger regulärer Ausdruck";
-"searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "searchMode in config.json: exact (Standard), fuzzy (verzeiht Tippfehler) oder regex (der Text ist ein regulärer Ausdruck).";
 "Clear on Quit" = "Beim Beenden leeren";
 "Could not change config.json" = "config.json konnte nicht geändert werden";
 "When Clipsie quits, delete everything except items tagged %@." = "Beim Beenden von Clipsie alles löschen außer Einträgen mit Tag %@.";
@@ -233,3 +232,8 @@
 "Import & Export" = "Import & Export";
 "Configuration" = "Konfiguration";
 "Cleanup" = "Aufräumen";
+"Click the magnifying glass to switch the search mode: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "Klicke auf die Lupe, um den Suchmodus zu wechseln: exakt (Standard), unscharf (verzeiht Tippfehler) oder Regex (der Text ist ein regulärer Ausdruck).";
+"Exact" = "Exakt";
+"Fuzzy (tolerates typos)" = "Unscharf (verzeiht Tippfehler)";
+"Regular expression" = "Regulärer Ausdruck";
+"Search mode: %@ — click to change" = "Suchmodus: %@ – zum Ändern klicken";

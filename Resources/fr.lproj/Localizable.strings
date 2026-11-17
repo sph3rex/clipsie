@@ -225,7 +225,6 @@
 "fuzzy search" = "recherche approximative";
 "regex search" = "recherche par regex";
 "invalid regular expression" = "expression régulière non valide";
-"searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "searchMode dans config.json : exact (par défaut), fuzzy (tolère les fautes de frappe) ou regex (le texte est une expression régulière).";
 "Clear on Quit" = "Effacer en quittant";
 "Could not change config.json" = "Impossible de modifier config.json";
 "When Clipsie quits, delete everything except items tagged %@." = "À la fermeture de Clipsie, tout supprimer sauf les éléments avec le tag %@.";
@@ -233,3 +232,8 @@
 "Import & Export" = "Importer et exporter";
 "Configuration" = "Configuration";
 "Cleanup" = "Nettoyage";
+"Click the magnifying glass to switch the search mode: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "Cliquez sur la loupe pour changer de mode de recherche : exact (par défaut), approximatif (tolère les fautes de frappe) ou regex (le texte est une expression régulière).";
+"Exact" = "Exacte";
+"Fuzzy (tolerates typos)" = "Approximative (tolère les fautes de frappe)";
+"Regular expression" = "Expression régulière";
+"Search mode: %@ — click to change" = "Mode de recherche : %@ — cliquez pour changer";

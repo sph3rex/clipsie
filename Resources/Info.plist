@@ -17,6 +17,8 @@
 		<string>fr</string>
 		<string>es</string>
 		<string>ro</string>
+		<string>zh-Hans</string>
+		<string>ja</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>Clipsie</string>

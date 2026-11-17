@@ -225,7 +225,6 @@
 "fuzzy search" = "căutare aproximativă";
 "regex search" = "căutare regex";
 "invalid regular expression" = "expresie regulată nevalidă";
-"searchMode in config.json: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "searchMode în config.json: exact (implicit), fuzzy (tolerează greșelile de tastare) sau regex (textul este o expresie regulată).";
 "Clear on Quit" = "Golește la ieșire";
 "Could not change config.json" = "config.json nu a putut fi modificat";
 "When Clipsie quits, delete everything except items tagged %@." = "La ieșirea din Clipsie, șterge tot, cu excepția elementelor cu eticheta %@.";
@@ -233,3 +232,8 @@
 "Import & Export" = "Import și export";
 "Configuration" = "Configurare";
 "Cleanup" = "Curățare";
+"Click the magnifying glass to switch the search mode: exact (default), fuzzy (tolerates typos) or regex (the text is one regular expression)." = "Dă clic pe lupă pentru a schimba modul de căutare: exact (implicit), aproximativ (tolerează greșelile de tastare) sau regex (textul este o expresie regulată).";
+"Exact" = "Exactă";
+"Fuzzy (tolerates typos)" = "Aproximativă (tolerează greșelile de tastare)";
+"Regular expression" = "Expresie regulată";
+"Search mode: %@ — click to change" = "Mod de căutare: %@ — dă clic pentru a-l schimba";
