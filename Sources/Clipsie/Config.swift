@@ -56,6 +56,8 @@ struct Config: Codable {
     var generatorsShortcut = "cmd+shift+e"
     var multiPasteSeparator = "\n"
     var quickPasteModifiers = "cmd"
+    var moveItemModifiers = "cmd"
+    var sequenceStepDelayMs = 100
     var searchProviders: [SearchProvider] = [
         SearchProvider(name: "Google", url: "https://www.google.com/search?q={q}", symbol: "magnifyingglass"),
         SearchProvider(name: "Google AI Mode", url: "https://www.google.com/search?q={q}&udm=50",
@@ -102,6 +104,8 @@ struct Config: Codable {
         generatorsShortcut = try c.decodeIfPresent(String.self, forKey: .generatorsShortcut) ?? d.generatorsShortcut
         multiPasteSeparator = try c.decodeIfPresent(String.self, forKey: .multiPasteSeparator) ?? d.multiPasteSeparator
         quickPasteModifiers = try c.decodeIfPresent(String.self, forKey: .quickPasteModifiers) ?? d.quickPasteModifiers
+        moveItemModifiers = try c.decodeIfPresent(String.self, forKey: .moveItemModifiers) ?? d.moveItemModifiers
+        sequenceStepDelayMs = try c.decodeIfPresent(Int.self, forKey: .sequenceStepDelayMs) ?? d.sequenceStepDelayMs
         searchProviders = try c.decodeIfPresent([SearchProvider].self, forKey: .searchProviders) ?? d.searchProviders
         linkPreviews = try c.decodeIfPresent(Bool.self, forKey: .linkPreviews) ?? d.linkPreviews
         searchMode = try c.decodeIfPresent(SearchMode.self, forKey: .searchMode) ?? d.searchMode

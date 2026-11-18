@@ -42,14 +42,65 @@ final class Paster {
     }
 
     func paste(into target: NSRunningApplication?) {
-        guard Self.isTrusted(prompt: true) else {
+        guard whenReady(target, then: { self.sendKeystroke(self.pasteShortcut(for: target)) }) else {
             NSLog("Clipsie: Accessibility permission missing; content is on the clipboard but was not pasted")
             return
         }
+    }
+
+    enum Action {
+        case paste([Representation])
+        case key(Shortcut)
+        case wait(TimeInterval)
+    }
+
+    func run(_ actions: [Action], in target: NSRunningApplication?, stepDelay: TimeInterval,
+             completion: @escaping (String?) -> Void) {
+        let started = whenReady(target) {
+            self.runNext(actions[...], in: target, stepDelay: stepDelay, completion: completion)
+        }
+        if !started { completion(L("Clipsie needs the Accessibility permission to paste.")) }
+    }
+
+    private func runNext(_ remaining: ArraySlice<Action>, in target: NSRunningApplication?, stepDelay: TimeInterval,
+                         completion: @escaping (String?) -> Void) {
+        guard let action = remaining.first else {
+            completion(nil)
+            return
+        }
+        if let target, NSWorkspace.shared.frontmostApplication?.processIdentifier != target.processIdentifier {
+            completion(L("Another app came to the front, so the sequence stopped."))
+            return
+        }
+        var pause = stepDelay
+        switch action {
+        case .paste(let reps):
+            guard write(reps, plainTextOnly: false) else {
+                completion(L("Could not write to the clipboard."))
+                return
+            }
+            sendKeystroke(pasteShortcut(for: target))
+        case .key(let shortcut):
+            sendKeystroke(shortcut)
+        case .wait(let seconds):
+            pause = seconds
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + pause) {
+            self.runNext(remaining.dropFirst(), in: target, stepDelay: stepDelay, completion: completion)
+        }
+    }
+
+    private func pasteShortcut(for target: NSRunningApplication?) -> Shortcut {
+        Self.bestMatch(in: pasteShortcutsByApp, for: Self.bundleID(of: target)) ?? Self.defaultPasteShortcut
+    }
+
+    private func whenReady(_ target: NSRunningApplication?, then action: @escaping () -> Void) -> Bool {
+        guard Self.isTrusted(prompt: true) else { return false }
         if let target, target.processIdentifier != ProcessInfo.processInfo.processIdentifier {
             target.activate(options: [])
         }
-        waitForTarget(target, deadline: Date().addingTimeInterval(1.0))
+        waitForTarget(target, deadline: Date().addingTimeInterval(1.0), then: action)
+        return true
     }
 
     static func isTrusted(prompt: Bool) -> Bool {
@@ -57,20 +108,16 @@ final class Paster {
         return AXIsProcessTrustedWithOptions([key: prompt] as CFDictionary)
     }
 
-    private func waitForTarget(_ target: NSRunningApplication?, deadline: Date) {
+    private func waitForTarget(_ target: NSRunningApplication?, deadline: Date, then action: @escaping () -> Void) {
         let frontPID = NSWorkspace.shared.frontmostApplication?.processIdentifier
         let targetReady = target == nil || frontPID == target?.processIdentifier
         if (targetReady && !Self.modifierKeysDown()) || Date() >= deadline {
-            let bundleID = Self.bundleID(of: target)
-            let delay = Self.bestMatch(in: pasteDelaysByApp, for: bundleID) ?? pasteDelay
-            let shortcut = Self.bestMatch(in: pasteShortcutsByApp, for: bundleID) ?? Self.defaultPasteShortcut
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                self.sendKeystroke(shortcut)
-            }
+            let delay = Self.bestMatch(in: pasteDelaysByApp, for: Self.bundleID(of: target)) ?? pasteDelay
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: action)
             return
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            self.waitForTarget(target, deadline: deadline)
+            self.waitForTarget(target, deadline: deadline, then: action)
         }
     }
 

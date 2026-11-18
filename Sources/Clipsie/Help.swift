@@ -1,7 +1,7 @@
 import AppKit
 
 enum Help {
-    static func text(commands: String, generators: String, quickPaste: String?) -> NSAttributedString {
+    static func text(commands: String, generators: String, quickPaste: String?, move: String?) -> NSAttributedString {
         let result = NSMutableAttributedString()
         func heading(_ text: String) {
             result.append(NSAttributedString(string: (result.length == 0 ? "" : "\n") + L(text) + "\n", attributes: [
@@ -46,6 +46,7 @@ enum Help {
         heading("Keys")
         row("↩  ⇧↩", "paste · paste as plain text (an image: the text in it)")
         if let quickPaste { row("\(quickPaste)1 … \(quickPaste)9", "paste row 1…9") }
+        if let move { row("\(move)-drag", "move an item in History (pinned items: change their order)") }
         row("``` or ~~~", "typed quickly: paste the selected item as a code block")
         row("⇧↑ ⇧↓  ⌘-click", "select several; ↩ pastes them in the order selected")
         row("⌘C", "copy without pasting")
@@ -84,6 +85,26 @@ enum Help {
         row("clip.base64Encode(text)", "and clip.base64Decode(text)")
         row("clip.history(10)", "texts of the 10 latest items")
         row("clip.log(…)", "to Console.app; item.sourceApp, item.types are there too")
+
+        row("types", "text, rich, image, file, link, color, other; default: items with text or files")
+
+        heading("Images")
+        note("Image items come with item.image (width, height). Return an image and the output (paste, copy, newItem, replace) is an image too. Built-in: resize, rotate, flip, grayscale, convert, copy as data URL.")
+        code(#"{"name": "Thumbnail", "types": ["image"], "script": "clip.image.resize(item.image, { max: 256 })", "output": "paste"}"#)
+        row("clip.image.resize(img, {…})", "width, height, max (longest side) or scale")
+        row("clip.image.crop(img, {…})", "x, y (from the top left), width, height")
+        row("clip.image.rotate(img, 90)", "clockwise, in steps of 90°; flip(img, \"vertical\")")
+        row("clip.image.convert(img, \"jpeg\")", "png, jpeg, heic, tiff; { quality: 0.8 }")
+        row("clip.image.toDataURL(img)", "text like data:image/png;base64,…; also grayscale(img)")
+
+        heading("Sequences")
+        note("Select items (⌘-click or ⇧↓) and choose Save as Sequence… in the right-click menu. A sequence pastes item 1…n of your selection with keys and pauses in between, e.g. to fill a form. It's a command in commands.json:")
+        code(#"{"name": "Fill login form", "sequence": "item 1, tab, item 2, enter"}"#)
+        row("item 1", "the 1st selected item (in the order you selected)")
+        row("\"text\"", "this text")
+        row("wait 200", "pause 200 ms (also 0.5s)")
+        row("tab, enter, cmd+a", "press a key")
+        note("Commands on several items: \"multiple\": \"each\" runs once per item (default), \"all\" once on all texts joined with \"separator\".")
 
         heading("Plugins — plugins/ in the data folder")
         note("A .js file gets the search text as `text` and returns a string or { value, title }; its row is shown on top. "

@@ -1,6 +1,96 @@
-import Foundation
+import AppKit
+
+enum SequenceStep {
+    case item(Int)
+    case text(String)
+    case key(Shortcut)
+    case wait(TimeInterval)
+
+    static func parse(_ source: String) throws -> [SequenceStep] {
+        var parts: [String] = []
+        var current = ""
+        var inQuotes = false
+        var escaped = false
+        for character in source {
+            if inQuotes {
+                current.append(character)
+                if escaped {
+                    escaped = false
+                } else if character == "\\" {
+                    escaped = true
+                } else if character == "\"" {
+                    inQuotes = false
+                }
+            } else if character == "\"" {
+                inQuotes = true
+                current.append(character)
+            } else if character == "," || character == "\n" {
+                parts.append(current)
+                current = ""
+            } else {
+                current.append(character)
+            }
+        }
+        guard !inQuotes else { throw ScriptError(message: L("A quote in the sequence isn't closed.")) }
+        parts.append(current)
+        return try parts.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.map(step)
+    }
+
+    private static func step(_ part: String) throws -> SequenceStep {
+        if part.hasPrefix("\"") {
+            let inner = part.dropFirst().dropLast()
+            var text = ""
+            var escaped = false
+            for character in inner {
+                if escaped {
+                    text.append(["n": "\n", "t": "\t"][character] ?? character)
+                    escaped = false
+                } else if character == "\\" {
+                    escaped = true
+                } else {
+                    text.append(character)
+                }
+            }
+            return .text(text)
+        }
+        let lower = part.lowercased()
+        if lower.hasPrefix("item"), let number = Int(lower.dropFirst(4).trimmingCharacters(in: .whitespaces)), number >= 1 {
+            return .item(number)
+        }
+        if lower.hasPrefix("wait") {
+            let amount = lower.dropFirst(4).replacingOccurrences(of: " ", with: "")
+            if amount.hasSuffix("ms"), let value = Double(amount.dropLast(2)) { return .wait(value / 1000) }
+            if amount.hasSuffix("s"), let value = Double(amount.dropLast()) { return .wait(value) }
+            if let value = Double(amount) { return .wait(value / 1000) }
+        }
+        if let shortcut = Shortcut(part) { return .key(shortcut) }
+        throw ScriptError(message: L("Unknown step “%@”. Use item 1, \"text\", wait 200, or a key like tab, enter or cmd+a.", part))
+    }
+}
+
+struct CommandSubject {
+    let text: String?
+    let types: Set<SearchQuery.ContentType>
+
+    init(_ reps: [Representation]) {
+        text = Content.text(reps)
+        var types: Set<SearchQuery.ContentType> = []
+        if Content.imageData(reps) != nil { types.insert(.image) }
+        if !Content.filePaths(reps).isEmpty {
+            types.insert(.file)
+        } else if let plain = Content.plainText(reps) {
+            types.insert(.text)
+            if Content.hasRichText(reps) { types.insert(.rich) }
+            if RichPreview.singleURL(in: plain) != nil { types.insert(.link) }
+            if RichPreview.color(in: plain) != nil { types.insert(.color) }
+        }
+        if types.isEmpty { types.insert(.other) }
+        self.types = types
+    }
+}
 
 struct UserCommand: Decodable {
+    enum Multiple: String, Decodable { case each, all }
     enum Kind: String, Decodable { case menu, automatic }
     enum Output: String, Decodable { case none, paste, copy, newItem, replace }
     enum Input: String, Decodable { case item, none }
@@ -21,11 +111,16 @@ struct UserCommand: Decodable {
     let output: Output
     let ignore: Bool
     let timeout: Double
+    let sequence: String?
+    let steps: [SequenceStep]?
+    let multiple: Multiple
+    let separator: String?
+    let types: Set<SearchQuery.ContentType>?
     private let regex: NSRegularExpression?
 
     private enum CodingKeys: String, CodingKey {
         case name, type, enabled, command, script, scriptFile, input, match, sourceApps, shortcut, globalShortcut, output
-        case ignore, timeout
+        case ignore, timeout, sequence, multiple, separator, types
     }
 
     init(from decoder: Decoder) throws {
@@ -44,7 +139,37 @@ struct UserCommand: Decodable {
         output = try c.decodeIfPresent(Output.self, forKey: .output) ?? .none
         ignore = try c.decodeIfPresent(Bool.self, forKey: .ignore) ?? false
         timeout = try c.decodeIfPresent(Double.self, forKey: .timeout) ?? 10
+        multiple = try c.decodeIfPresent(Multiple.self, forKey: .multiple) ?? .each
+        separator = try c.decodeIfPresent(String.self, forKey: .separator)
+        if let names = try c.decodeIfPresent([String].self, forKey: .types) {
+            types = Set(try names.map { name in
+                guard let type = SearchQuery.ContentType(rawValue: name.lowercased()) else {
+                    throw DecodingError.dataCorruptedError(forKey: .types, in: c, debugDescription:
+                        "“\(name)”: unknown type; use text, rich, image, file, link, color or other")
+                }
+                return type
+            })
+        } else {
+            types = nil
+        }
         regex = try match.map { try NSRegularExpression(pattern: $0) }
+        sequence = try c.decodeIfPresent(String.self, forKey: .sequence)
+        if let sequence {
+            do {
+                steps = try SequenceStep.parse(sequence)
+            } catch {
+                throw DecodingError.dataCorruptedError(forKey: .sequence, in: c, debugDescription: "“\(name)”: \(error)")
+            }
+        } else {
+            steps = nil
+        }
+    }
+
+    var itemsNeeded: Int {
+        steps?.reduce(0) { needed, step in
+            if case .item(let number) = step { return max(needed, number) }
+            return needed
+        } ?? 1
     }
 
     var localShortcut: Shortcut? { shortcut.flatMap(Shortcut.init) }
@@ -71,25 +196,61 @@ struct UserCommand: Decodable {
 
     var usesShell: Bool { script == nil && scriptFile == nil && command != nil }
 
-    func applies(to text: String?, sourceApp: String?) -> Bool {
+    func accepts(_ subject: CommandSubject) -> Bool {
+        !(types ?? [.text, .file]).isDisjoint(with: subject.types)
+    }
+
+    func applies(to subject: CommandSubject, sourceApp: String?) -> Bool {
         if input == .none { return true }
         if let apps = sourceApps, !apps.isEmpty {
             guard let sourceApp, apps.contains(sourceApp) else { return false }
         }
+        guard accepts(subject) else { return false }
         guard let regex else { return true }
-        guard let text else { return false }
+        guard let text = subject.text else { return false }
         return regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
+    }
+
+    static func appendSequence(name: String, steps: String) throws {
+        _ = try SequenceStep.parse(steps)
+        let entry: [String: Any] = ["name": name, "sequence": steps]
+        let json = String(decoding: try JSONSerialization.data(withJSONObject: entry, options: [.sortedKeys, .withoutEscapingSlashes]),
+                          as: UTF8.self)
+        let text = try String(contentsOf: AppPaths.commands, encoding: .utf8)
+        guard let end = text.lastIndex(of: "]") else { throw ScriptError(message: L("commands.json isn't a JSON list.")) }
+        let before = text[..<end].trimmingCharacters(in: .whitespacesAndNewlines)
+        let updated = before + (before.hasSuffix("[") ? "\n  " : ",\n  ") + json + "\n" + text[end...]
+        guard (try? JSONSerialization.jsonObject(with: Data(updated.utf8))) is [Any] else {
+            throw ScriptError(message: L("commands.json isn't a JSON list."))
+        }
+        try Data(updated.utf8).write(to: AppPaths.commands, options: .atomic)
     }
 
     static func load() throws -> (commands: [UserCommand], skipped: [String]) {
         if !FileManager.default.fileExists(atPath: AppPaths.commands.path) {
             try Data(defaultCommandsJSON.utf8).write(to: AppPaths.commands)
         }
-        let all = try JSONDecoder().decode([UserCommand].self, from: Data(contentsOf: AppPaths.commands))
-            .filter(\.enabled)
+        let decoded = try JSONDecoder().decode([UserCommand].self, from: Data(contentsOf: AppPaths.commands))
+        let builtIn = try JSONDecoder().decode([UserCommand].self, from: Data(builtInCommandsJSON.utf8))
+            .filter { command in !decoded.contains { $0.name == command.name } }
+        let all = (decoded + builtIn).filter(\.enabled)
         let unsafe = all.filter { $0.type == .automatic && $0.usesShell }
         return (all.filter { !($0.type == .automatic && $0.usesShell) }, unsafe.map(\.name))
     }
+
+    private static let builtInCommandsJSON = #"""
+    [
+      {"name": "Resize image to 50%", "types": ["image"], "script": "clip.image.resize(item.image, { scale: 0.5 })", "output": "newItem"},
+      {"name": "Resize image to fit 1024 px", "types": ["image"], "script": "clip.image.resize(item.image, { max: 1024 })", "output": "newItem"},
+      {"name": "Rotate image right", "types": ["image"], "script": "clip.image.rotate(item.image, 90)", "output": "newItem"},
+      {"name": "Rotate image left", "types": ["image"], "script": "clip.image.rotate(item.image, -90)", "output": "newItem"},
+      {"name": "Flip image horizontally", "types": ["image"], "script": "clip.image.flip(item.image, 'horizontal')", "output": "newItem"},
+      {"name": "Make image grayscale", "types": ["image"], "script": "clip.image.grayscale(item.image)", "output": "newItem"},
+      {"name": "Convert image to JPEG", "types": ["image"], "script": "clip.image.convert(item.image, 'jpeg', { quality: 0.85 })", "output": "newItem"},
+      {"name": "Convert image to PNG", "types": ["image"], "script": "clip.image.convert(item.image, 'png')", "output": "newItem"},
+      {"name": "Copy image as data URL", "types": ["image"], "script": "clip.image.toDataURL(item.image)", "output": "copy"}
+    ]
+    """#
 
     private static let defaultCommandsJSON = #"""
     [
@@ -124,6 +285,7 @@ struct CommandResult {
     let status: Int32
     let output: String
     let error: String
+    var image: Representation? = nil
 }
 
 enum CommandRunner {

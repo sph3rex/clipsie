@@ -127,6 +127,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
                       L("Use modifiers like \"cmd\", \"ctrl\", \"alt\" or \"ctrl+alt\", or \"\" to turn quick paste off."))
             history.quickPasteModifiers = .command
         }
+        if config.moveItemModifiers.isEmpty {
+            history.moveItemModifiers = nil
+        } else if let modifiers = Shortcut.modifiers(config.moveItemModifiers), !modifiers.isEmpty {
+            history.moveItemModifiers = modifiers
+        } else {
+            showError(L("Invalid moveItemModifiers “%@” in config.json", config.moveItemModifiers),
+                      L("Use modifiers like \"cmd\", \"alt\" or \"ctrl+alt\", or \"\" to turn moving items off."))
+            history.moveItemModifiers = .command
+        }
         history.commandsPrefix = config.commandsPrefix
         history.generatorsPrefix = config.generatorsPrefix
         history.commandsShortcut = paletteShortcut(config.commandsShortcut, key: "commandsShortcut")
@@ -178,8 +187,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     }
 
     private func handleCapture(_ capture: Capture) {
+        let subject = CommandSubject(capture.representations)
         let automatic = commands.filter {
-            $0.type == .automatic && $0.applies(to: capture.text, sourceApp: capture.sourceApp)
+            $0.type == .automatic && $0.applies(to: subject, sourceApp: capture.sourceApp)
         }
         runAutomatic(automatic[...], on: capture)
     }
@@ -307,8 +317,144 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         history.searchMode = mode
     }
 
-    func run(_ command: UserCommand, itemID: Int64?, target: NSRunningApplication?) {
-        runCommand(command, itemID: itemID, target: target)
+    func run(_ command: UserCommand, itemIDs: [Int64], target: NSRunningApplication?) {
+        if let steps = command.steps {
+            runSequence(command, steps: steps, itemIDs: itemIDs, target: target)
+        } else if itemIDs.count > 1, command.input == .item, command.multiple == .all {
+            runCommand(command, joining: itemIDs, target: target)
+        } else if itemIDs.count > 1, command.input == .item {
+            runCommand(command, onEach: itemIDs, target: target)
+        } else {
+            runCommand(command, itemID: itemIDs.first, target: target)
+        }
+    }
+
+    func addSequence(name: String, steps: String) {
+        do {
+            try UserCommand.appendSequence(name: name, steps: steps)
+        } catch {
+            showError(L("Could not save the sequence"), "\(error)")
+            return
+        }
+        reloadSettings()
+    }
+
+    private func runSequence(_ command: UserCommand, steps: [SequenceStep], itemIDs: [Int64], target: NSRunningApplication?) {
+        let items = itemIDs.map { store.representations(for: $0) }
+        var actions: [Paster.Action] = []
+        for step in steps {
+            switch step {
+            case .item(let number):
+                guard number <= items.count else {
+                    showError(L("“%@” needs %@ selected items", command.displayName, String(command.itemsNeeded)), "")
+                    return
+                }
+                actions.append(.paste(items[number - 1]))
+            case .text(let text):
+                actions.append(.paste([Representation(itemIndex: 0, type: Content.utf8Type, data: Data(text.utf8))]))
+            case .key(let shortcut):
+                actions.append(.key(shortcut))
+            case .wait(let seconds):
+                actions.append(.wait(seconds))
+            }
+        }
+        if history.isVisible { history.hide() }
+        if NSApp.isActive { NSApp.hide(nil) }
+        paster.run(actions, in: target, stepDelay: Double(config.sequenceStepDelayMs) / 1000) { [weak self] problem in
+            if let problem { self?.showError(L("“%@” stopped", command.displayName), problem) }
+        }
+    }
+
+    private func runCommand(_ command: UserCommand, joining itemIDs: [Int64], target: NSRunningApplication?) {
+        let input = itemIDs.compactMap { Content.text(store.representations(for: $0)) }
+            .joined(separator: command.separator ?? config.multiPasteSeparator)
+        execute(command, input: input, itemID: nil, sourceApp: nil, reps: []) { [weak self] result in
+            self?.finish(command, result: result, input: input, itemID: nil, target: target)
+        }
+    }
+
+    private func runCommand(_ command: UserCommand, onEach itemIDs: [Int64], target: NSRunningApplication?) {
+        let inputs: [(id: Int64, text: String, reps: [Representation])] = itemIDs.compactMap { id in
+            let reps = store.representations(for: id)
+            let text = Content.text(reps) ?? ""
+            return command.applies(to: CommandSubject(reps), sourceApp: nil) ? (id: id, text: text, reps: reps) : nil
+        }
+        guard !inputs.isEmpty else {
+            NSSound.beep()
+            return
+        }
+        var outputs = [CommandResult?](repeating: nil, count: inputs.count)
+        var failures: [String] = []
+        func step(_ index: Int) {
+            guard index < inputs.count else {
+                finish(command, inputs: inputs, outputs: outputs, failures: failures, target: target)
+                return
+            }
+            let input = inputs[index]
+            let started = execute(command, input: input.text, itemID: input.id, sourceApp: nil, reps: input.reps) { result in
+                if result.status == 0 {
+                    outputs[index] = result
+                } else {
+                    failures.append(result.error.isEmpty ? result.output : result.error)
+                }
+                step(index + 1)
+            }
+            if !started { step(index + 1) }
+        }
+        step(0)
+    }
+
+    private func finish(_ command: UserCommand, inputs: [(id: Int64, text: String, reps: [Representation])],
+                        outputs: [CommandResult?], failures: [String], target: NSRunningApplication?) {
+        if !failures.isEmpty {
+            showError(L("Command “%@” failed for %@ of %@ items", command.displayName, String(failures.count), String(inputs.count)),
+                      failures.joined(separator: "\n"))
+        }
+        let images = zip(inputs, outputs).compactMap { input, output in output?.image.map { (id: input.id, image: $0) } }
+        if !images.isEmpty {
+            switch command.output {
+            case .none:
+                break
+            case .paste, .copy:
+                let reps = images.enumerated().map { Representation(itemIndex: $0.offset, type: $0.element.image.type,
+                                                                    data: $0.element.image.data) }
+                guard paster.write(reps, plainTextOnly: false) else {
+                    NSSound.beep()
+                    return
+                }
+                for result in images { save(Capture(representations: [result.image], sourceApp: nil)) }
+                if command.output == .paste { deliverPaste(to: target) }
+            case .newItem:
+                for result in images { save(Capture(representations: [result.image], sourceApp: nil)) }
+            case .replace:
+                for result in images {
+                    store.replace(id: result.id, with: Capture(representations: [result.image], sourceApp: nil))
+                    ocr.recognize(result.id)
+                }
+                history.refreshIfVisible()
+            }
+            return
+        }
+        let results = zip(inputs, outputs).compactMap { input, output in
+            output.map { (id: input.id, output: Self.trimmed($0.output, input: input.text)) }
+        }.filter { !$0.output.isEmpty }
+        switch command.output {
+        case .none:
+            break
+        case .paste, .copy:
+            let joined = results.map { $0.output }.joined(separator: command.separator ?? config.multiPasteSeparator)
+            guard !joined.isEmpty, paster.write(text: joined) else {
+                NSSound.beep()
+                return
+            }
+            save(Capture(text: joined, sourceApp: nil))
+            if command.output == .paste { deliverPaste(to: target) }
+        case .newItem:
+            for result in results { save(Capture(text: result.output, sourceApp: nil)) }
+        case .replace:
+            for result in results { store.replace(id: result.id, with: Capture(text: result.output, sourceApp: nil)) }
+            history.refreshIfVisible()
+        }
     }
 
     private func wantsPlainText(_ target: NSRunningApplication?) -> Bool {
@@ -334,7 +480,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     }
 
     private func runOnLatest(_ command: UserCommand) {
-        runCommand(command, itemID: store.latestID(), target: NSWorkspace.shared.frontmostApplication)
+        run(command, itemIDs: store.latestID().map { [$0] } ?? [], target: NSWorkspace.shared.frontmostApplication)
     }
 
     private func runCommand(_ command: UserCommand, itemID: Int64?, target: NSRunningApplication?) {
@@ -344,7 +490,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             reps = store.representations(for: itemID)
         }
         let input = Content.text(reps) ?? ""
-        guard command.applies(to: input, sourceApp: nil) else { return }
+        guard command.applies(to: CommandSubject(reps), sourceApp: nil) else { return }
         execute(command, input: input, itemID: itemID, sourceApp: nil, reps: reps) { [weak self] result in
             self?.finish(command, result: result, input: input, itemID: itemID, target: target)
         }
@@ -370,7 +516,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         case .javaScript(let source):
             var types: [String] = []
             for rep in reps where !types.contains(rep.type) { types.append(rep.type) }
-            let scriptInput = ScriptInput(text: input, itemID: itemID, sourceApp: sourceApp, types: types)
+            let scriptInput = ScriptInput(text: input, itemID: itemID, sourceApp: sourceApp, types: types,
+                                          image: Content.imageData(reps))
             ScriptEngine.commands.run(source, name: command.name, input: scriptInput, timeout: command.timeout) { result in
                 switch result {
                 case .success(.nothing):
@@ -380,6 +527,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
                     completion(CommandResult(status: status, output: "", error: ""))
                 case .success(.text(let text, _)):
                     completion(CommandResult(status: 0, output: text, error: ""))
+                case .success(.image(let image)):
+                    completion(CommandResult(status: 0, output: "", error: "", image: image))
                 case .failure(let error):
                     completion(CommandResult(status: 1, output: "", error: error.message))
                 }
@@ -393,6 +542,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         guard result.status == 0 else {
             showError(L("Command “%@” failed (exit %@)", command.displayName, String(result.status)),
                       result.error.isEmpty ? result.output : result.error)
+            return
+        }
+        if let image = result.image {
+            let capture = Capture(representations: [image], sourceApp: nil)
+            switch command.output {
+            case .none:
+                break
+            case .paste, .copy:
+                guard paster.write([image], plainTextOnly: false) else { return }
+                save(capture)
+                if command.output == .paste { deliverPaste(to: target) }
+            case .newItem:
+                save(capture)
+            case .replace:
+                if let itemID, command.input == .item {
+                    store.replace(id: itemID, with: capture)
+                    ocr.recognize(itemID)
+                    history.refreshIfVisible()
+                } else {
+                    save(capture)
+                }
+            }
             return
         }
         let output = Self.trimmed(result.output, input: input)
@@ -491,9 +662,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
 
         do {
             let latest = store.latestID()
-            let text = latest.flatMap { Content.text(store.representations(for: $0)) }
+            let subject = CommandSubject(latest.map { store.representations(for: $0) } ?? [])
             let applicable = commands.filter {
-                $0.type == .menu && ($0.input == .none || latest != nil) && $0.applies(to: text, sourceApp: nil)
+                $0.type == .menu && ($0.input == .none || latest != nil) && $0.applies(to: subject, sourceApp: nil)
             }
             if !applicable.isEmpty {
                 let submenu = NSMenu()
@@ -584,7 +755,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     @objc private func runFromMenu(_ sender: NSMenuItem) {
         guard let name = sender.representedObject as? String,
               let command = commands.first(where: { $0.name == name }) else { return }
-        runCommand(command, itemID: store.latestID(), target: menuTargetApp)
+        run(command, itemIDs: store.latestID().map { [$0] } ?? [], target: menuTargetApp)
     }
 
     @objc private func togglePause() {

@@ -63,8 +63,9 @@ Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar i
 | <kbd>↩</kbd> / <kbd>⇧</kbd><kbd>↩</kbd> | paste / paste as plain text |
 | <kbd>⌘</kbd><kbd>1</kbd> … <kbd>⌘</kbd><kbd>9</kbd> | paste item 1…9 |
 | <kbd>⌘</kbd><kbd>C</kbd> | copy without pasting |
-| <kbd>⇧</kbd><kbd>↑</kbd> <kbd>⇧</kbd><kbd>↓</kbd>, <kbd>⌘</kbd>-click | select several items; <kbd>↩</kbd> pastes them together, in the order you picked them |
+| <kbd>⇧</kbd><kbd>↑</kbd> <kbd>⇧</kbd><kbd>↓</kbd>, <kbd>⌘</kbd>-click | select several items; <kbd>↩</kbd> pastes them together, in the order you picked them, and commands run on each of them |
 | <kbd>⌘</kbd><kbd>P</kbd> | pin to the top |
+| <kbd>⌘</kbd>-drag | move an item in History; for pinned items this sets their order (`moveItemModifiers`) |
 | <kbd>⌘</kbd><kbd>I</kbd> / <kbd>⌘</kbd><kbd>L</kbd> | toggle the `important` tag / edit tags |
 | <kbd>⌘</kbd><kbd>E</kbd> | give the item a title |
 | <kbd>⌘</kbd><kbd>↩</kbd> | edit the item's text |
@@ -102,6 +103,47 @@ Commands live in `commands.json` (menu bar icon → Configuration → Edit Comma
 ```
 
 Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` helper API (hashes, Base64, UUIDs, random values, recent items). Automatic commands run on every copy, e.g. to skip one-time codes or strip tracking parameters from links. Search plugins work the same way and add rows to the results, like the built-in calculator. Type `??` in the history window for more examples, the main command options and the whole `clip` API.
+
+With several items selected, a command runs once per item and the results are joined (`"multiple": "each"`, the default), or once on all their texts joined together (`"multiple": "all"`). Either way, `"separator"` sets what goes between them.
+
+`"types"` limits a command to kinds of items: `text`, `rich`, `image`, `file`, `link`, `color`, `other`. Without it, a command applies to items that have text or files.
+
+## Images
+
+Commands can work on images too. An image item gives the script `item.image`; when the script returns an image, the result (`paste`, `copy`, `newItem`, `replace`) is an image again. Clipsie has built-in image actions in the commands (<kbd>⌘</kbd><kbd>K</kbd>, right-click): resize to 50 % or to fit 1024 px, rotate left/right, flip, grayscale, convert to JPEG or PNG, and copy as a data URL.
+
+```json
+{"name": "Thumbnail", "types": ["image"], "script": "clip.image.resize(item.image, { max: 256 })", "output": "paste"}
+```
+
+| Function | Does |
+|---|---|
+| `clip.image.resize(img, { width, height, max, scale })` | resizes; one side keeps the aspect ratio, `max` fits the longest side |
+| `clip.image.crop(img, { x, y, width, height })` | crops; `x`/`y` from the top left |
+| `clip.image.rotate(img, 90)` | turns clockwise in steps of 90° |
+| `clip.image.flip(img, "horizontal")` | mirrors (`"vertical"` too) |
+| `clip.image.grayscale(img)` | removes the colour |
+| `clip.image.convert(img, "jpeg", { quality: 0.8 })` | sets the output format: `png`, `jpeg`, `heic`, `tiff` |
+| `clip.image.toDataURL(img)` | returns `data:image/png;base64,…` as text |
+
+Images are processed in memory and never written to disk; sides are limited to 16,384 pixels. To hide a built-in action, add `{"name": "Rotate image left", "enabled": false}` to `commands.json`; a command of yours with the same name replaces it.
+
+## Sequences
+
+A sequence pastes several items one after another, with keys and pauses in between: handy for filling the same form again and again. Select the items in the order you want (<kbd>⌘</kbd>-click or <kbd>⇧</kbd><kbd>↓</kbd>), right-click and choose **Save as Sequence…**. From then on it shows up in the commands (<kbd>⌘</kbd><kbd>K</kbd> or `>`) whenever enough items are selected.
+
+```json
+{"name": "Fill login form", "sequence": "item 1, tab, item 2, enter"}
+```
+
+| Step | Does |
+|---|---|
+| `item 1` … `item 9` | pastes the 1st…9th selected item, in the order you selected them |
+| `"some text"` | pastes that text |
+| `wait 200` | pauses 200 ms (`0.5s` works too) |
+| `tab`, `enter`, `shift+tab`, `cmd+a`, `down`, … | presses that key |
+
+Steps are separated by commas or new lines; `sequenceStepDelayMs` in `config.json` (default 100) is the pause between steps. A sequence stops if another app comes to the front while it runs.
 
 ## Settings
 

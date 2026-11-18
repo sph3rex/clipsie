@@ -188,6 +188,12 @@ final class Store {
         if !columns.contains("title") {
             try exec("ALTER TABLE items ADD COLUMN title TEXT")
         }
+        if !columns.contains("pin_position") {
+            try exec("""
+                ALTER TABLE items ADD COLUMN pin_position REAL;
+                UPDATE items SET pin_position = -used_at WHERE pinned = 1;
+                """)
+        }
         var tables = Set<String>()
         try run("SELECT name FROM sqlite_master WHERE type = 'table'") { stmt in
             if let name = self.text(stmt, 0) { tables.insert(name) }
@@ -368,7 +374,48 @@ final class Store {
 
     func setPinned(_ id: Int64, _ pinned: Bool) {
         queue.sync {
-            attempt { try run("UPDATE items SET pinned = ? WHERE id = ?", [.int(pinned ? 1 : 0), .int(id)]) }
+            attempt {
+                try run("""
+                    UPDATE items SET pinned = ?1, pin_position = CASE WHEN ?1 = 1
+                        THEN COALESCE((SELECT MIN(pin_position) FROM items WHERE pinned = 1), 0) - 1 END
+                    WHERE id = ?2
+                    """, [.int(pinned ? 1 : 0), .int(id)])
+            }
+        }
+    }
+
+    func move(_ id: Int64, below above: Int64?, above below: Int64?) {
+        queue.sync {
+            attempt {
+                var pinned = false
+                try run("SELECT pinned FROM items WHERE id = ?", [.int(id)]) { pinned = sqlite3_column_int64($0, 0) != 0 }
+                if pinned {
+                    var order: [Int64] = []
+                    try run("SELECT id FROM items WHERE pinned = 1 ORDER BY \(Self.order(.history))") { order.append(sqlite3_column_int64($0, 0)) }
+                    try transaction {
+                        for (position, pinnedID) in order.enumerated() {
+                            try run("UPDATE items SET pin_position = ? WHERE id = ?", [.double(Double(position)), .int(pinnedID)])
+                        }
+                    }
+                }
+                var neighbors: [Int64: Double] = [:]
+                let column = pinned ? "pin_position" : "used_at"
+                for neighbor in [above, below].compactMap({ $0 }) {
+                    try run("SELECT \(column) FROM items WHERE id = ? AND pinned = ?", [.int(neighbor), .int(pinned ? 1 : 0)]) {
+                        neighbors[neighbor] = sqlite3_column_double($0, 0)
+                    }
+                }
+                let upper = above.flatMap { neighbors[$0] }, lower = below.flatMap { neighbors[$0] }
+                let step: Double = pinned ? 1 : 0.001
+                let value: Double
+                switch (upper, lower) {
+                case let (upper?, lower?): value = (upper + lower) / 2
+                case let (upper?, nil): value = pinned ? upper + step : upper - step
+                case let (nil, lower?): value = pinned ? lower - step : lower + step
+                case (nil, nil): return
+                }
+                try run("UPDATE items SET \(column) = ? WHERE id = ?", [.double(value), .int(id)])
+            }
         }
     }
 
@@ -761,7 +808,7 @@ final class Store {
     private static func order(_ tab: HistoryTab) -> String {
         switch tab {
         case .tagged: return "(SELECT MAX(tagged_at) FROM item_tags WHERE item_id = items.id) DESC"
-        case .history, .images: return "pinned DESC, used_at DESC"
+        case .history, .images: return "pinned DESC, CASE WHEN pinned = 1 THEN pin_position END NULLS LAST, used_at DESC"
         }
     }
 

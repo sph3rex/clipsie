@@ -10,8 +10,9 @@ protocol HistoryActions: AnyObject {
     func pasteText(_ text: String, target: NSRunningApplication?)
     func copyText(_ text: String)
     func pasteItems(_ ids: [Int64], target: NSRunningApplication?)
-    func run(_ command: UserCommand, itemID: Int64?, target: NSRunningApplication?)
+    func run(_ command: UserCommand, itemIDs: [Int64], target: NSRunningApplication?)
     func setSearchMode(_ mode: SearchMode)
+    func addSequence(name: String, steps: String)
 }
 
 final class HistoryPanel: NSPanel {
@@ -31,6 +32,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     weak var actions: HistoryActions?
     var commands: [UserCommand] = []
     var plugins: [URL] = []
+    var moveItemModifiers: NSEvent.ModifierFlags? = .command
     var quickPasteModifiers: NSEvent.ModifierFlags? = .command {
         didSet { ItemCellView.quickPastePrefix = quickPasteModifiers.map(Shortcut.symbols) ?? "" }
     }
@@ -80,6 +82,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private var editingOriginalText = ""
     private static let maxEditableLength = 1_000_000
     private var selectionOrder: [Int64] = []
+    private var selectionAnchor: Int?
+    private var selectionCursor = 0
+    private var isExtendingSelection = false
     private static let fenceInterval: TimeInterval = 0.8
     private let previewScroll = NSTextView.scrollableTextView()
     private let previewImage = NSImageView()
@@ -94,8 +99,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private var previewGeneration = 0
     private var didPositionSplit = false
     private var paletteCommands: [UserCommand]?
-    private var paletteItemID: Int64?
-    private var paletteItemText: String?
+    private var paletteItemIDs: [Int64] = []
+    private var paletteSubjects: [CommandSubject] = []
     private var paletteShowsGenerators = false
     private static let pageSize = 100
 
@@ -253,6 +258,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         tableView.delegate = self
         tableView.target = self
         tableView.doubleAction = #selector(tableDoubleClicked)
+        tableView.registerForDraggedTypes([Self.rowDragType])
+        tableView.setDraggingSourceOperationMask(.move, forLocal: true)
+        tableView.draggingDestinationFeedbackStyle = .gap
         let contextMenu = NSMenu()
         contextMenu.delegate = self
         tableView.menu = contextMenu
@@ -451,8 +459,11 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if let paletteCommands {
             if paletteShowsGenerators {
                 statusLabel.stringValue = L("%@ generators — ↩ run · Esc back to history", String(paletteCommands.count))
-            } else if paletteItemID == nil {
+            } else if paletteItemIDs.isEmpty {
                 statusLabel.stringValue = L("No item selected — Esc and select one, or type %@ for generators", generatorsPrefix)
+            } else if paletteItemIDs.count > 1 {
+                statusLabel.stringValue = L("%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back",
+                                            String(paletteCommands.count), String(paletteItemIDs.count), generatorsPrefix)
             } else {
                 statusLabel.stringValue = L("%@ commands for the selected item — ↩ run · %@ generators · Esc back", String(paletteCommands.count), generatorsPrefix)
             }
@@ -581,8 +592,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if handleQuickTrigger(query) { return }
         if let mode = paletteMode(query) {
             if paletteCommands == nil {
-                paletteItemID = selectedID
-                paletteItemText = paletteItemID.flatMap { Content.text(store.representations(for: $0)) }
+                paletteItemIDs = commandTargets
+                paletteSubjects = paletteItemIDs.map { CommandSubject(store.representations(for: $0)) }
             }
             pluginGeneration += 1
             pluginResults = []
@@ -590,7 +601,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             showPalette(filter: mode.filter)
         } else if paletteCommands != nil {
             paletteCommands = nil
-            runSearch(selecting: paletteItemID)
+            runSearch(selecting: paletteItemIDs.first)
         } else {
             perform(#selector(runPendingSearch), with: nil, afterDelay: 0.08)
         }
@@ -654,7 +665,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         let matching = self.commands.filter { command in
             (paletteShowsGenerators
                 ? command.input == .none
-                : command.input == .item && paletteItemID != nil && command.applies(to: paletteItemText, sourceApp: nil))
+                : command.input == .item && isAvailable(command, subjects: paletteSubjects))
                 && terms.allSatisfy { (command.displayName + "\n" + command.name).lowercased().contains($0) }
         }
         paletteCommands = matching
@@ -671,8 +682,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func runSelectedPaletteCommand() {
         guard let commands = paletteCommands, tableView.selectedRow >= 0, tableView.selectedRow < commands.count else { return }
         let command = commands[tableView.selectedRow]
-        run(command, itemID: command.input == .none ? nil : paletteItemID)
-        if command.output != .paste {
+        run(command, itemIDs: command.input == .none ? [] : paletteItemIDs)
+        if command.output != .paste && command.steps == nil {
             searchField.stringValue = ""
             searchTextChanged()
         }
@@ -726,7 +737,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func showCommandPreview(_ command: UserCommand) {
         setPreviewHeader("")
         let runs: String
-        if let script = command.script {
+        if let sequence = command.sequence {
+            runs = L("Sequence: %@", sequence)
+        } else if let script = command.script {
             runs = L("JavaScript (sandboxed): %@", script)
         } else if let file = command.scriptFile {
             runs = L("JavaScript (sandboxed): %@", "scripts/" + file)
@@ -739,9 +752,13 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if command.input == .none {
             lines.append(L("Input: none"))
         } else {
-            lines.append(L("Input: selected item"))
-            lines.append("")
-            lines.append(String((paletteItemText ?? "").prefix(10_000)))
+            lines.append(paletteItemIDs.count > 1
+                ? L("Input: %@ selected items, each run separately", String(paletteItemIDs.count))
+                : L("Input: selected item"))
+            for subject in paletteSubjects.prefix(20) {
+                lines.append("")
+                lines.append(String((subject.text ?? "").prefix(paletteSubjects.count > 1 ? 2_000 : 10_000)))
+            }
         }
         if let shortcut = command.localShortcut { lines.insert(L("Key: %@", shortcut.display), at: 2) }
         previewImage.image = nil
@@ -769,6 +786,42 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         return cell
     }
 
+    private static let rowDragType = NSPasteboard.PasteboardType("local.clipsie.row")
+
+    private var canMoveItems: Bool {
+        tab == .history && paletteCommands == nil && !isShowingHelp && editingItemID == nil
+    }
+
+    func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
+        guard canMoveItems, let modifiers = moveItemModifiers,
+              NSEvent.modifierFlags.intersection([.command, .shift, .option, .control]) == modifiers,
+              let index = idIndex(forRow: row) else { return nil }
+        let item = NSPasteboardItem()
+        item.setString(String(ids[index]), forType: Self.rowDragType)
+        return item
+    }
+
+    func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int,
+                   proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
+        guard canMoveItems, info.draggingPasteboard.string(forType: Self.rowDragType) != nil else { return [] }
+        if dropOperation == .on { tableView.setDropRow(row, dropOperation: .above) }
+        return .move
+    }
+
+    func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int,
+                   dropOperation: NSTableView.DropOperation) -> Bool {
+        guard canMoveItems, let string = info.draggingPasteboard.string(forType: Self.rowDragType),
+              let id = Int64(string), let from = ids.firstIndex(of: id) else { return false }
+        var list = ids
+        list.remove(at: from)
+        var to = max(0, row - pluginResults.count)
+        if from < to { to -= 1 }
+        to = min(to, list.count)
+        store.move(id, below: to > 0 ? list[to - 1] : nil, above: to < list.count ? list[to] : nil)
+        runSearch(selecting: id)
+        return true
+    }
+
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
         HistoryRowView()
     }
@@ -778,6 +831,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     private func selectionChanged() {
+        if !isExtendingSelection { selectionAnchor = nil }
         let rows = tableView.selectedRowIndexes
         let selected = rows.compactMap { idIndex(forRow: $0).map { ids[$0] } }
         let selectedSet = Set(selected)
@@ -796,9 +850,15 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func extendSelection(by delta: Int) {
         guard rowCount > 0 else { return }
-        let target = max(0, min((tableView.selectedRow < 0 ? 0 : tableView.selectedRow) + delta, rowCount - 1))
-        tableView.selectRowIndexes(IndexSet(integer: target), byExtendingSelection: true)
-        tableView.scrollRowToVisible(target)
+        let current = tableView.selectedRow < 0 ? 0 : tableView.selectedRow
+        let anchor = selectionAnchor ?? current
+        let cursor = max(0, min((selectionAnchor == nil ? current : selectionCursor) + delta, rowCount - 1))
+        isExtendingSelection = true
+        tableView.selectRowIndexes(IndexSet(integersIn: min(anchor, cursor)...max(anchor, cursor)), byExtendingSelection: false)
+        isExtendingSelection = false
+        selectionAnchor = anchor
+        selectionCursor = cursor
+        tableView.scrollRowToVisible(cursor)
     }
 
     private func select(_ row: Int) {
@@ -1005,7 +1065,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewText.textStorage?.setAttributedString(Help.text(
             commands: commandsShortcut.map { L("%@ or %@", $0.display, commandsPrefix) } ?? commandsPrefix,
             generators: generatorsShortcut.map { L("%@ or %@", $0.display, generatorsPrefix) } ?? generatorsPrefix,
-            quickPaste: quickPasteModifiers.map(Shortcut.symbols)))
+            quickPaste: quickPasteModifiers.map(Shortcut.symbols),
+            move: moveItemModifiers.map(Shortcut.symbols)))
         previewText.scrollToBeginningOfDocument(nil)
         updateStatus()
     }
@@ -1281,9 +1342,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         updateStatus()
     }
 
-    private func run(_ command: UserCommand, itemID: Int64?) {
-        if command.output == .paste { hide() }
-        actions?.run(command, itemID: itemID, target: targetApp)
+    private func run(_ command: UserCommand, itemIDs: [Int64]) {
+        if command.output == .paste || command.steps != nil { hide() }
+        actions?.run(command, itemIDs: itemIDs, target: targetApp)
     }
 
     private func dismiss() {
@@ -1291,9 +1352,21 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         NSApp.hide(nil)
     }
 
-    private func applicableCommands(for id: Int64) -> [UserCommand] {
-        let text = Content.text(store.representations(for: id))
-        return commands.filter { $0.applies(to: text, sourceApp: nil) }
+    private var commandTargets: [Int64] {
+        selectionOrder.count > 1 ? selectionOrder : (selectedID.map { [$0] } ?? [])
+    }
+
+    private func applicableCommands(for ids: [Int64]) -> [UserCommand] {
+        let subjects = ids.map { CommandSubject(store.representations(for: $0)) }
+        return commands.filter { command in
+            command.input == .none ? subjects.allSatisfy(command.accepts) : isAvailable(command, subjects: subjects)
+        }
+    }
+
+    private func isAvailable(_ command: UserCommand, subjects: [CommandSubject]) -> Bool {
+        guard !subjects.isEmpty else { return false }
+        if command.steps != nil { return subjects.count >= command.itemsNeeded }
+        return subjects.allSatisfy { command.applies(to: $0, sourceApp: nil) }
     }
 
     func control(_ control: NSControl, textView: NSTextView, doCommandBy selector: Selector) -> Bool {
@@ -1345,13 +1418,14 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         }
         let matching = commands.filter { $0.localShortcut?.matches(event) == true }
         if let generator = matching.first(where: { $0.input == .none }) {
-            run(generator, itemID: nil)
+            run(generator, itemIDs: [])
             return true
         }
-        if let id = selectedID, !matching.isEmpty {
-            let text = Content.text(store.representations(for: id))
-            if let command = matching.first(where: { $0.applies(to: text, sourceApp: nil) }) {
-                run(command, itemID: id)
+        let targets = commandTargets
+        if !targets.isEmpty, !matching.isEmpty {
+            let subjects = targets.map { CommandSubject(store.representations(for: $0)) }
+            if let command = matching.first(where: { isAvailable($0, subjects: subjects) }) {
+                run(command, itemIDs: targets)
                 return true
             }
         }
@@ -1453,6 +1527,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if selectionOrder.count > 1 {
             menu.addItem(menuItem(L("Paste %@ Items", String(selectionOrder.count)), #selector(menuPasteAll)))
             menu.addItem(menuItem(L("Delete %@ Items from This List", String(selectionOrder.count)), #selector(menuDelete)))
+            menu.addItem(menuItem(L("Save as Sequence…"), #selector(menuSaveSequence)))
+            addCommandItems(to: menu, for: selectionOrder)
             return
         }
         let pinned = item(at: row)?.pinned ?? false
@@ -1475,15 +1551,18 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             menu.addItem(menuItem(L("Remove All Tags"), #selector(menuDelete)))
         }
 
-        let applicable = applicableCommands(for: id)
-        if !applicable.isEmpty {
-            menu.addItem(.separator())
-            for command in applicable {
-                let item = menuItem(command.displayName, #selector(menuRunCommand(_:)))
-                item.representedObject = command.name
-                if let shortcut = command.localShortcut { item.title += "   " + shortcut.display }
-                menu.addItem(item)
-            }
+        addCommandItems(to: menu, for: [id])
+    }
+
+    private func addCommandItems(to menu: NSMenu, for ids: [Int64]) {
+        let applicable = applicableCommands(for: ids)
+        guard !applicable.isEmpty else { return }
+        menu.addItem(.separator())
+        for command in applicable {
+            let item = menuItem(command.displayName, #selector(menuRunCommand(_:)))
+            item.representedObject = command.name
+            if let shortcut = command.localShortcut { item.title += "   " + shortcut.display }
+            menu.addItem(item)
         }
     }
 
@@ -1504,10 +1583,39 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     @objc private func menuEditText() { editTextSelected() }
     @objc private func menuEditTags() { editTagsSelected() }
 
+    @objc private func menuSaveSequence() {
+        guard let window, selectionOrder.count > 1 else { return }
+        let alert = NSAlert()
+        alert.messageText = L("Save as Sequence")
+        alert.informativeText = L("A sequence pastes the selected items one after another, with keys and pauses in between. item 1…n are the items selected when you run it, in the order you selected them. Steps: item 1, \"text\", wait 200 (ms), or a key like tab, enter, shift+tab or cmd+a.")
+        let name = NSTextField(frame: NSRect(x: 0, y: 34, width: 380, height: 24))
+        name.placeholderString = L("Name, e.g. Fill login form")
+        let steps = NSTextField(frame: NSRect(x: 0, y: 0, width: 380, height: 24))
+        steps.stringValue = (1...selectionOrder.count).map { "item \($0)" }.joined(separator: ", tab, ")
+        let fields = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 58))
+        fields.addSubview(name)
+        fields.addSubview(steps)
+        name.nextKeyView = steps
+        alert.accessoryView = fields
+        alert.addButton(withTitle: L("Save"))
+        alert.addButton(withTitle: L("Cancel"))
+        alert.window.initialFirstResponder = name
+        isShowingSheet = true
+        alert.beginSheetModal(for: window) { [weak self] response in
+            guard let self else { return }
+            self.isShowingSheet = false
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(self.searchField)
+            let title = name.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard response == .alertFirstButtonReturn, !title.isEmpty else { return }
+            self.actions?.addSequence(name: title, steps: steps.stringValue)
+        }
+    }
+
     @objc private func menuRunCommand(_ sender: NSMenuItem) {
         guard let name = sender.representedObject as? String,
               let command = commands.first(where: { $0.name == name }) else { return }
-        run(command, itemID: command.input == .none ? nil : selectedID)
+        run(command, itemIDs: command.input == .none ? [] : commandTargets)
     }
 }
 
