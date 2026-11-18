@@ -162,7 +162,7 @@
 "regex search" = "正则表达式搜索";
 "invalid regular expression" = "无效的正则表达式";
 "%@ items" = "%@ 个项目";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ 个项目，按你选择的顺序粘贴。没有文本的项目（图像）会被跳过。";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ 个项目，按你选择的顺序粘贴。图片粘贴其识别出的文字；没有任何文字的项目会被跳过。";
 "(no text — skipped)" = "（无文本——已跳过）";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "来自插件“%@” · ↩ 粘贴 · ⌘C 拷贝";
 "JavaScript (sandboxed): %@" = "JavaScript（沙盒）：%@";

@@ -122,7 +122,7 @@
 "↩ paste · ?? help · ⇧↩ plain · ⌘I important · ⌘L tags · ⌘E title · ⌘⌫ remove all tags · ⇥ next list · %@ commands" = "↩ einfügen · ?? Hilfe · ⇧↩ reiner Text · ⌘I important · ⌘L Tags · ⌘E Titel · ⌘⌫ alle Tags entfernen · ⇥ nächste Liste · %@ Befehle";
 "↩ paste · ?? help · ⇧↩ paste the text in the image · ⌘I important · ⌘L tags · ⌘P pin · ⌘⌫ delete · ⇥ next list" = "↩ einfügen · ?? Hilfe · ⇧↩ Text im Bild einfügen · ⌘I important · ⌘L Tags · ⌘P anheften · ⌘⌫ löschen · ⇥ nächste Liste";
 "%@ items" = "%@ Einträge";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ Einträge, eingefügt in der Reihenfolge, in der du sie gewählt hast. Einträge ohne Text (Bilder) werden übersprungen.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ Einträge, eingefügt in der Reihenfolge deiner Auswahl. Bilder fügen ihren erkannten Text ein; Einträge ganz ohne Text werden übersprungen.";
 "(no text — skipped)" = "(kein Text – übersprungen)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "Vom Plug-in „%@“ · ↩ fügt ein · ⌘C kopiert";
 "JavaScript (sandboxed): %@" = "JavaScript (Sandbox): %@";

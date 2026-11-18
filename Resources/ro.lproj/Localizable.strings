@@ -122,7 +122,7 @@
 "↩ paste · ?? help · ⇧↩ plain · ⌘I important · ⌘L tags · ⌘E title · ⌘⌫ remove all tags · ⇥ next list · %@ commands" = "↩ lipește · ?? ajutor · ⇧↩ text simplu · ⌘I important · ⌘L etichete · ⌘E titlu · ⌘⌫ elimină toate etichetele · ⇥ lista următoare · %@ comenzi";
 "↩ paste · ?? help · ⇧↩ paste the text in the image · ⌘I important · ⌘L tags · ⌘P pin · ⌘⌫ delete · ⇥ next list" = "↩ lipește · ?? ajutor · ⇧↩ lipește textul din imagine · ⌘I important · ⌘L etichete · ⌘P fixează · ⌘⌫ șterge · ⇥ lista următoare";
 "%@ items" = "%@ elemente";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ elemente, lipite în ordinea în care le-ai selectat. Elementele fără text (imagini) sunt omise.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ elemente, lipite în ordinea în care le-ai selectat. Imaginile lipesc textul recunoscut; elementele fără niciun text sunt omise.";
 "(no text — skipped)" = "(fără text — omis)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "Din pluginul „%@” · ↩ lipește · ⌘C copiază";
 "JavaScript (sandboxed): %@" = "JavaScript (sandbox): %@";

@@ -64,7 +64,7 @@ Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar i
 | <kbd>↩</kbd> / <kbd>⇧</kbd><kbd>↩</kbd> | paste / paste as plain text |
 | <kbd>⌘</kbd><kbd>1</kbd> … <kbd>⌘</kbd><kbd>9</kbd> | paste item 1…9 |
 | <kbd>⌘</kbd><kbd>C</kbd> | copy without pasting |
-| <kbd>⇧</kbd><kbd>↑</kbd> <kbd>⇧</kbd><kbd>↓</kbd>, <kbd>⌘</kbd>-click | select several items; <kbd>↩</kbd> pastes them together, in the order you picked them, and commands run on each of them |
+| <kbd>⇧</kbd><kbd>↑</kbd> <kbd>⇧</kbd><kbd>↓</kbd>, <kbd>⌘</kbd>-click | select several items; <kbd>↩</kbd> pastes their text together, in the order you picked them (images give their recognized text), and commands run on each of them |
 | <kbd>⌘</kbd><kbd>P</kbd> | pin to the top |
 | <kbd>⌘</kbd>-drag | move an item in History; for pinned items this sets their order (`moveItemModifiers`) |
 | <kbd>⌘</kbd><kbd>I</kbd> / <kbd>⌘</kbd><kbd>L</kbd> | toggle the `important` tag / edit tags |

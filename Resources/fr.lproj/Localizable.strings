@@ -122,7 +122,7 @@
 "↩ paste · ?? help · ⇧↩ plain · ⌘I important · ⌘L tags · ⌘E title · ⌘⌫ remove all tags · ⇥ next list · %@ commands" = "↩ coller · ?? aide · ⇧↩ texte brut · ⌘I important · ⌘L tags · ⌘E titre · ⌘⌫ retirer tous les tags · ⇥ liste suivante · %@ commandes";
 "↩ paste · ?? help · ⇧↩ paste the text in the image · ⌘I important · ⌘L tags · ⌘P pin · ⌘⌫ delete · ⇥ next list" = "↩ coller · ?? aide · ⇧↩ coller le texte de l’image · ⌘I important · ⌘L tags · ⌘P épingler · ⌘⌫ supprimer · ⇥ liste suivante";
 "%@ items" = "%@ éléments";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ éléments, collés dans l’ordre où vous les avez sélectionnés. Les éléments sans texte (images) sont ignorés.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ éléments, collés dans l’ordre de sélection. Les images collent leur texte reconnu ; les éléments sans aucun texte sont ignorés.";
 "(no text — skipped)" = "(pas de texte — ignoré)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "Du plug-in « %@ » · ↩ colle · ⌘C copie";
 "JavaScript (sandboxed): %@" = "JavaScript (sandbox) : %@";

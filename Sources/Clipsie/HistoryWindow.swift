@@ -713,7 +713,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         let selection = Array(selectionOrder.prefix(100))
         let count = selectionOrder.count
         DispatchQueue.global(qos: .userInitiated).async { [store, weak self] in
-            let texts = selection.map { Content.text(store.representations(for: $0)) }
+            let texts = selection.map { Content.text(store.representations(for: $0)) ?? store.ocrText(for: $0) }
             DispatchQueue.main.async {
                 guard let self, generation == self.previewGeneration else { return }
                 self.showMultiPreview(texts, count: count)
@@ -729,7 +729,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewSearchText = nil
         updateSearchButtons()
         let content = NSMutableAttributedString(
-            string: L("%@ items, pasted in the order you selected them. Items without text (images) are skipped.", String(count)) + "\n\n",
+            string: L("%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped.", String(count)) + "\n\n",
             attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
         for (index, text) in texts.enumerated() {
             let text = text ?? L("(no text — skipped)")

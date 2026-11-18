@@ -195,7 +195,7 @@
 "regex search" = "regex pretraživanje";
 "invalid regular expression" = "nevaljani regularni izraz";
 "%@ items" = "Stavki: %@";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "Stavki: %@, lijepe se redoslijedom odabira. Stavke bez teksta (slike) preskaču se.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "Stavki: %@, zalijepljenih redom kojim ste ih odabrali. Slike lijepe svoj prepoznati tekst; stavke bez ikakvog teksta preskaču se.";
 "(no text — skipped)" = "(nema teksta — preskočeno)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "Iz dodatka „%@“ · ↩ lijepi · ⌘C kopira";
 "Sequence: %@" = "Slijed: %@";

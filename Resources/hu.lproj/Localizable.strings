@@ -195,7 +195,7 @@
 "regex search" = "regex keresés";
 "invalid regular expression" = "érvénytelen reguláris kifejezés";
 "%@ items" = "%@ elem";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ elem, a kijelölés sorrendjében beillesztve. A szöveg nélküli elemek (képek) kimaradnak.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ elem, a kijelölés sorrendjében beillesztve. A képek a felismert szövegüket illesztik be; a szöveg nélküli elemek kimaradnak.";
 "(no text — skipped)" = "(nincs szöveg — kihagyva)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "A(z) „%@” bővítményből · ↩ beilleszt · ⌘C másol";
 "Sequence: %@" = "Sorozat: %@";

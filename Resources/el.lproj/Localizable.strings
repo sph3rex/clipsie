@@ -195,7 +195,7 @@
 "regex search" = "αναζήτηση regex";
 "invalid regular expression" = "μη έγκυρη κανονική έκφραση";
 "%@ items" = "%@ στοιχεία";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ στοιχεία, επικολλημένα με τη σειρά που τα επιλέξατε. Τα στοιχεία χωρίς κείμενο (εικόνες) παραλείπονται.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ στοιχεία, επικολλημένα με τη σειρά που τα επιλέξατε. Οι εικόνες επικολλούν το αναγνωρισμένο κείμενό τους· τα στοιχεία χωρίς κανένα κείμενο παραλείπονται.";
 "(no text — skipped)" = "(χωρίς κείμενο — παραλείφθηκε)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "Από το πρόσθετο «%@» · ↩ επικόλληση · ⌘C αντιγραφή";
 "Sequence: %@" = "Ακολουθία: %@";

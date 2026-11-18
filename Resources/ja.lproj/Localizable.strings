@@ -162,7 +162,7 @@
 "regex search" = "正規表現検索";
 "invalid regular expression" = "無効な正規表現";
 "%@ items" = "%@ 件";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ 件の項目を、選択した順にペーストします。テキストのない項目（画像）はスキップされます。";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ 件の項目を選択した順に貼り付けます。画像は認識されたテキストを貼り付け、テキストのない項目はスキップされます。";
 "(no text — skipped)" = "（テキストなし — スキップ）";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "プラグイン「%@」から · ↩ でペースト · ⌘C でコピー";
 "JavaScript (sandboxed): %@" = "JavaScript（サンドボックス）: %@";

@@ -195,7 +195,7 @@
 "regex search" = "wyszukiwanie regex";
 "invalid regular expression" = "nieprawidłowe wyrażenie regularne";
 "%@ items" = "Elementy: %@";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "Elementy (%@) wklejone w kolejności zaznaczania. Elementy bez tekstu (obrazy) są pomijane.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "Elementy: %@, wklejane w kolejności zaznaczenia. Obrazy wklejają rozpoznany tekst; elementy bez żadnego tekstu są pomijane.";
 "(no text — skipped)" = "(brak tekstu — pominięto)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "Z wtyczki „%@” · ↩ wkleja · ⌘C kopiuje";
 "Sequence: %@" = "Sekwencja: %@";

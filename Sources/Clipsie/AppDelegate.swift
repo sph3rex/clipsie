@@ -284,7 +284,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     }
 
     func pasteItems(_ ids: [Int64], target: NSRunningApplication?) {
-        let texts = ids.compactMap { Content.text(store.representations(for: $0)) }
+        let texts = ids.compactMap { Content.text(store.representations(for: $0)) ?? store.ocrText(for: $0) }
         guard !texts.isEmpty, paster.write(text: texts.joined(separator: config.multiPasteSeparator)) else {
             NSSound.beep()
             return

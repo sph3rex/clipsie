@@ -195,7 +195,7 @@
 "regex search" = "търсене с regex";
 "invalid regular expression" = "невалиден регулярен израз";
 "%@ items" = "%@ елемента";
-"%@ items, pasted in the order you selected them. Items without text (images) are skipped." = "%@ елемента, поставени в реда на избиране. Елементите без текст (изображения) се пропускат.";
+"%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped." = "%@ елемента, поставени в реда, в който сте ги избрали. Изображенията поставят разпознатия си текст; елементите без никакъв текст се пропускат.";
 "(no text — skipped)" = "(няма текст — пропуснато)";
 "From plugin “%@” · ↩ pastes · ⌘C copies" = "От добавката „%@“ · ↩ поставя · ⌘C копира";
 "Sequence: %@" = "Последователност: %@";
