@@ -263,7 +263,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         tableView.registerForDraggedTypes([Self.rowDragType])
         tableView.canDrag = { [weak self] in self?.isMoveGesture ?? false }
         tableView.setDraggingSourceOperationMask(.move, forLocal: true)
-        tableView.draggingDestinationFeedbackStyle = .gap
+        tableView.draggingDestinationFeedbackStyle = .regular
         let contextMenu = NSMenu()
         contextMenu.delegate = self
         tableView.menu = contextMenu
@@ -708,7 +708,20 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         }
     }
 
-    private func showMultiPreview(_ selection: [Int64]) {
+    @objc private func loadMultiPreview() {
+        let generation = previewGeneration
+        let selection = Array(selectionOrder.prefix(100))
+        let count = selectionOrder.count
+        DispatchQueue.global(qos: .userInitiated).async { [store, weak self] in
+            let texts = selection.map { Content.text(store.representations(for: $0)) }
+            DispatchQueue.main.async {
+                guard let self, generation == self.previewGeneration else { return }
+                self.showMultiPreview(texts, count: count)
+            }
+        }
+    }
+
+    private func showMultiPreview(_ texts: [String?], count: Int) {
         setPreviewHeader("")
         previewImage.image = nil
         previewImage.isHidden = true
@@ -716,10 +729,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewSearchText = nil
         updateSearchButtons()
         let content = NSMutableAttributedString(
-            string: L("%@ items, pasted in the order you selected them. Items without text (images) are skipped.", String(selection.count)) + "\n\n",
+            string: L("%@ items, pasted in the order you selected them. Items without text (images) are skipped.", String(count)) + "\n\n",
             attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
-        for (index, id) in selection.prefix(100).enumerated() {
-            let text = Content.text(store.representations(for: id)) ?? L("(no text — skipped)")
+        for (index, text) in texts.enumerated() {
+            let text = text ?? L("(no text — skipped)")
             content.append(NSAttributedString(string: "\(index + 1)\n", attributes: [
                 .font: NSFont.systemFont(ofSize: 10, weight: .semibold), .foregroundColor: NSColor.tertiaryLabelColor,
             ]))
@@ -795,8 +808,6 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cell = tableView.makeView(withIdentifier: ItemCellView.identifier, owner: nil) as? ItemCellView ?? ItemCellView()
-        cell.isHidden = false
-        cell.alphaValue = 1
         if let paletteCommands, row < paletteCommands.count {
             cell.configure(number: row + 1, command: paletteCommands[row])
         } else if let result = pluginResult(at: row) {
@@ -868,7 +879,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         let selected = rows.compactMap { idIndex(forRow: $0).map { ids[$0] } }
         let selectedSet = Set(selected)
         selectionOrder.removeAll { !selectedSet.contains($0) }
-        for id in selected where !selectionOrder.contains(id) { selectionOrder.append(id) }
+        var known = Set(selectionOrder)
+        for id in selected where known.insert(id).inserted { selectionOrder.append(id) }
         if let editing = editingItemID {
             if selected == [editing] {
                 updateStatus()
@@ -930,6 +942,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func loadPreview() {
         previewGeneration += 1
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(loadMultiPreview), object: nil)
         let generation = previewGeneration
         updateTagBar(selectionOrder.count <= 1 ? item(at: tableView.selectedRow) : nil)
         if let paletteCommands {
@@ -942,7 +955,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             return
         }
         if selectionOrder.count > 1 {
-            showMultiPreview(selectionOrder)
+            perform(#selector(loadMultiPreview), with: nil, afterDelay: 0.15)
             return
         }
         guard let id = selectedID else {
