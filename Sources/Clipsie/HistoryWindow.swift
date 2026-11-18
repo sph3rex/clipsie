@@ -39,6 +39,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private var keyMonitor: Any?
     var commandsPrefix = ">" { didSet { updatePaletteHelp() } }
     var generatorsPrefix = ">>" { didSet { updatePaletteHelp() } }
+    var sequencesPrefix = ">>>" { didSet { updatePaletteHelp() } }
     var commandsShortcut = Shortcut("cmd+k") { didSet { updatePaletteHelp() } }
     var generatorsShortcut = Shortcut("cmd+shift+e") { didSet { updatePaletteHelp() } }
     var searchProviders: [SearchProvider] = [] {
@@ -101,7 +102,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private var paletteCommands: [UserCommand]?
     private var paletteItemIDs: [Int64] = []
     private var paletteSubjects: [CommandSubject] = []
-    private var paletteShowsGenerators = false
+    private enum PaletteKind { case commands, generators, sequences }
+    private var paletteKind = PaletteKind.commands
     private static let pageSize = 100
 
     init(store: Store) {
@@ -419,17 +421,19 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     private func updatePaletteHelp() {
-        searchField.placeholderString = L("Search clipboard   (?? help, %@ item commands, %@ generators)", commandsPrefix, generatorsPrefix)
-        paletteButton.toolTip = L("Commands for the selected item: %@ or %@\nGenerators: %@ or %@", commandsPrefix,
-                                  commandsShortcut?.display ?? "-", generatorsPrefix, generatorsShortcut?.display ?? "-")
+        searchField.placeholderString = L("Search (?? help, %@ item commands, %@ generators, %@ sequences)",
+                                          commandsPrefix, generatorsPrefix, sequencesPrefix)
+        paletteButton.toolTip = L("Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@", commandsPrefix,
+                                  commandsShortcut?.display ?? "-", generatorsPrefix, generatorsShortcut?.display ?? "-",
+                                  sequencesPrefix)
     }
 
-    private func paletteMode(_ query: String) -> (generators: Bool, filter: String)? {
-        let prefixes = [(true, generatorsPrefix), (false, commandsPrefix)]
+    private func paletteMode(_ query: String) -> (kind: PaletteKind, filter: String)? {
+        let prefixes = [(PaletteKind.sequences, sequencesPrefix), (.generators, generatorsPrefix), (.commands, commandsPrefix)]
             .filter { !$0.1.isEmpty }
             .sorted { $0.1.count > $1.1.count }
-        for (generators, prefix) in prefixes where query.hasPrefix(prefix) {
-            return (generators, String(query.dropFirst(prefix.count)))
+        for (kind, prefix) in prefixes where query.hasPrefix(prefix) {
+            return (kind, String(query.dropFirst(prefix.count)))
         }
         return nil
     }
@@ -457,8 +461,11 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             return
         }
         if let paletteCommands {
-            if paletteShowsGenerators {
+            if paletteKind == .generators {
                 statusLabel.stringValue = L("%@ generators — ↩ run · Esc back to history", String(paletteCommands.count))
+            } else if paletteKind == .sequences {
+                statusLabel.stringValue = L("%@ sequences — ↩ runs on %@ selected items · Esc back",
+                                            String(paletteCommands.count), String(paletteItemIDs.count))
             } else if paletteItemIDs.isEmpty {
                 statusLabel.stringValue = L("No item selected — Esc and select one, or type %@ for generators", generatorsPrefix)
             } else if paletteItemIDs.count > 1 {
@@ -597,7 +604,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             }
             pluginGeneration += 1
             pluginResults = []
-            paletteShowsGenerators = mode.generators
+            paletteKind = mode.kind
             showPalette(filter: mode.filter)
         } else if paletteCommands != nil {
             paletteCommands = nil
@@ -642,19 +649,25 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     @objc private func togglePalette() {
-        switch paletteMode(searchField.stringValue)?.generators {
-        case .none: openPalette(generators: false)
-        case .some(false): openPalette(generators: true)
-        case .some(true): openPalette(generators: nil)
+        switch paletteMode(searchField.stringValue)?.kind {
+        case .none: openPalette(.commands)
+        case .some(.commands): openPalette(.generators)
+        case .some(.generators): openPalette(sequencesPrefix.isEmpty ? nil : .sequences)
+        case .some(.sequences): openPalette(nil)
         }
     }
 
-    private func switchPalette(generators: Bool) {
-        openPalette(generators: paletteMode(searchField.stringValue)?.generators == generators ? nil : generators)
+    private func switchPalette(_ kind: PaletteKind) {
+        openPalette(paletteMode(searchField.stringValue)?.kind == kind ? nil : kind)
     }
 
-    private func openPalette(generators: Bool?) {
-        searchField.stringValue = generators.map { $0 ? generatorsPrefix : commandsPrefix } ?? ""
+    private func openPalette(_ kind: PaletteKind?) {
+        switch kind {
+        case .none: searchField.stringValue = ""
+        case .some(.commands): searchField.stringValue = commandsPrefix
+        case .some(.generators): searchField.stringValue = generatorsPrefix
+        case .some(.sequences): searchField.stringValue = sequencesPrefix
+        }
         window?.makeFirstResponder(searchField)
         searchField.currentEditor()?.selectedRange = NSRange(location: searchField.stringValue.utf16.count, length: 0)
         searchTextChanged()
@@ -663,10 +676,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func showPalette(filter: String) {
         let terms = filter.lowercased().split(whereSeparator: \.isWhitespace)
         let matching = self.commands.filter { command in
-            (paletteShowsGenerators
-                ? command.input == .none
-                : command.input == .item && isAvailable(command, subjects: paletteSubjects))
-                && terms.allSatisfy { (command.displayName + "\n" + command.name).lowercased().contains($0) }
+            isInPalette(command) && terms.allSatisfy { (command.displayName + "\n" + command.name).lowercased().contains($0) }
         }
         paletteCommands = matching
         tableView.reloadData()
@@ -679,10 +689,18 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         updateStatus()
     }
 
+    private func isInPalette(_ command: UserCommand) -> Bool {
+        switch paletteKind {
+        case .sequences: return command.steps != nil
+        case .generators: return command.steps == nil && command.input == .none
+        case .commands: return command.steps == nil && command.input == .item && isAvailable(command, subjects: paletteSubjects)
+        }
+    }
+
     private func runSelectedPaletteCommand() {
         guard let commands = paletteCommands, tableView.selectedRow >= 0, tableView.selectedRow < commands.count else { return }
         let command = commands[tableView.selectedRow]
-        run(command, itemIDs: command.input == .none ? [] : paletteItemIDs)
+        run(command, itemIDs: command.input == .none && command.steps == nil ? [] : paletteItemIDs)
         if command.output != .paste && command.steps == nil {
             searchField.stringValue = ""
             searchTextChanged()
@@ -1065,6 +1083,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewText.textStorage?.setAttributedString(Help.text(
             commands: commandsShortcut.map { L("%@ or %@", $0.display, commandsPrefix) } ?? commandsPrefix,
             generators: generatorsShortcut.map { L("%@ or %@", $0.display, generatorsPrefix) } ?? generatorsPrefix,
+            sequences: sequencesPrefix,
             quickPaste: quickPasteModifiers.map(Shortcut.symbols),
             move: moveItemModifiers.map(Shortcut.symbols)))
         previewText.scrollToBeginningOfDocument(nil)
@@ -1358,14 +1377,12 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func applicableCommands(for ids: [Int64]) -> [UserCommand] {
         let subjects = ids.map { CommandSubject(store.representations(for: $0)) }
-        return commands.filter { command in
-            command.input == .none ? subjects.allSatisfy(command.accepts) : isAvailable(command, subjects: subjects)
-        }
+        return commands.filter { $0.steps == nil && $0.input == .item && isAvailable($0, subjects: subjects) }
     }
 
     private func isAvailable(_ command: UserCommand, subjects: [CommandSubject]) -> Bool {
+        if command.steps != nil { return true }
         guard !subjects.isEmpty else { return false }
-        if command.steps != nil { return subjects.count >= command.itemsNeeded }
         return subjects.allSatisfy { command.applies(to: $0, sourceApp: nil) }
     }
 
@@ -1430,11 +1447,11 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             }
         }
         if commandsShortcut?.matches(event) == true {
-            switchPalette(generators: false)
+            switchPalette(.commands)
             return true
         }
         if generatorsShortcut?.matches(event) == true {
-            switchPalette(generators: true)
+            switchPalette(.generators)
             return true
         }
         guard modifiers == .command, let key = event.charactersIgnoringModifiers?.lowercased() else { return false }
@@ -1556,14 +1573,23 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func addCommandItems(to menu: NSMenu, for ids: [Int64]) {
         let applicable = applicableCommands(for: ids)
-        guard !applicable.isEmpty else { return }
+        let sequences = commands.filter { $0.steps != nil }
+        guard !applicable.isEmpty || !sequences.isEmpty else { return }
         menu.addItem(.separator())
-        for command in applicable {
-            let item = menuItem(command.displayName, #selector(menuRunCommand(_:)))
-            item.representedObject = command.name
-            if let shortcut = command.localShortcut { item.title += "   " + shortcut.display }
-            menu.addItem(item)
-        }
+        for command in applicable { menu.addItem(commandMenuItem(command)) }
+        guard !sequences.isEmpty else { return }
+        let submenu = NSMenu()
+        for command in sequences { submenu.addItem(commandMenuItem(command)) }
+        let item = NSMenuItem(title: L("Sequences"), action: nil, keyEquivalent: "")
+        item.submenu = submenu
+        menu.addItem(item)
+    }
+
+    private func commandMenuItem(_ command: UserCommand) -> NSMenuItem {
+        let item = menuItem(command.displayName, #selector(menuRunCommand(_:)))
+        item.representedObject = command.name
+        if let shortcut = command.localShortcut { item.title += "   " + shortcut.display }
+        return item
     }
 
     private func menuItem(_ title: String, _ action: Selector) -> NSMenuItem {

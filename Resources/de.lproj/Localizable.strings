@@ -112,8 +112,6 @@
 "Images" = "Bilder";
 "Clipboard History" = "Zwischenablage-Verlauf";
 "Switch list (Tab)" = "Liste wechseln (Tab)";
-"Search clipboard   (?? help, %@ item commands, %@ generators)" = "Zwischenablage durchsuchen   (?? Hilfe, %1$@ Befehle, %2$@ Generatoren)";
-"Commands for the selected item: %@ or %@\nGenerators: %@ or %@" = "Befehle für den gewählten Eintrag: %1$@ oder %2$@\nGeneratoren: %3$@ oder %4$@";
 "Help — type to search · Esc closes" = "Hilfe – tippen zum Suchen · Esc schließt";
 "Editing — ⌘S or ⌘↩ save · Esc cancel · selecting another item saves" = "Bearbeiten – ⌘S oder ⌘↩ sichert · Esc bricht ab · ein anderer Eintrag sichert";
 "%@ generators — ↩ run · Esc back to history" = "%@ Generatoren – ↩ ausführen · Esc zurück zum Verlauf";
@@ -244,7 +242,6 @@
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "%1$@ Befehle für %2$@ ausgewählte Einträge – ↩ führt auf jedem aus · %3$@ Generatoren · Esc zurück";
 "Input: %@ selected items, each run separately" = "Eingabe: %@ ausgewählte Einträge, jeder einzeln";
 "Could not save the sequence" = "Die Sequenz konnte nicht gesichert werden";
-"“%@” needs %@ selected items" = "„%1$@“ braucht %2$@ ausgewählte Einträge";
 "“%@” stopped" = "„%@“ wurde angehalten";
 "A quote in the sequence isn't closed." = "Ein Anführungszeichen in der Sequenz ist nicht geschlossen.";
 "commands.json isn't a JSON list." = "commands.json ist keine JSON-Liste.";
@@ -289,3 +286,7 @@
 "crop needs x, y, width and height." = "crop braucht x, y, width und height.";
 "resize needs width, height, max or scale." = "resize braucht width, height, max oder scale.";
 "rotate only turns by multiples of 90 degrees." = "rotate dreht nur in Vielfachen von 90 Grad.";
+"Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Suchen (?? Hilfe, %1$@ Befehle, %2$@ Generatoren, %3$@ Sequenzen)";
+"Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Befehle für den gewählten Eintrag: %1$@ oder %2$@\nGeneratoren: %3$@ oder %4$@\nSequenzen: %5$@";
+"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ Sequenzen – ↩ läuft mit %2$@ ausgewählten Einträgen · Esc zurück";
+"Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Sequenzen startest du mit %@ oder über das Kontextmenü. Sind weniger Einträge ausgewählt, als die Sequenz verwendet, hält sie beim ersten fehlenden Eintrag an.";

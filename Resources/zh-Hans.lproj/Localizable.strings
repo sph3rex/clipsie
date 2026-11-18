@@ -149,8 +149,6 @@
 "Fuzzy (tolerates typos)" = "模糊（容忍拼写错误）";
 "Regular expression" = "正则表达式";
 "Search mode: %@ — click to change" = "搜索模式：%@——点按以更改";
-"Search clipboard   (?? help, %@ item commands, %@ generators)" = "搜索剪贴板   （?? 帮助，%1$@ 项目命令，%2$@ 生成器）";
-"Commands for the selected item: %@ or %@\nGenerators: %@ or %@" = "所选项目的命令：%1$@ 或 %2$@\n生成器：%3$@ 或 %4$@";
 "Help — type to search · Esc closes" = "帮助——输入以搜索 · Esc 关闭";
 "Editing — ⌘S or ⌘↩ save · Esc cancel · selecting another item saves" = "正在编辑——⌘S 或 ⌘↩ 存储 · Esc 取消 · 选择其他项目时存储";
 "%@ generators — ↩ run · Esc back to history" = "%@ 个生成器——↩ 运行 · Esc 返回历史记录";
@@ -244,7 +242,6 @@
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "%2$@ 个所选项目有 %1$@ 个命令——↩ 逐个运行 · %3$@ 生成器 · Esc 返回";
 "Input: %@ selected items, each run separately" = "输入：%@ 个所选项目，逐个运行";
 "Could not save the sequence" = "无法存储序列";
-"“%@” needs %@ selected items" = "“%1$@”需要选择 %2$@ 个项目";
 "“%@” stopped" = "“%@”已停止";
 "A quote in the sequence isn't closed." = "序列中有未闭合的引号。";
 "commands.json isn't a JSON list." = "commands.json 不是 JSON 列表。";
@@ -289,3 +286,7 @@
 "crop needs x, y, width and height." = "crop 需要 x、y、width 和 height。";
 "resize needs width, height, max or scale." = "resize 需要 width、height、max 或 scale。";
 "rotate only turns by multiples of 90 degrees." = "rotate 只能按 90 度的倍数旋转。";
+"Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "搜索（?? 帮助，%1$@ 项目命令，%2$@ 生成器，%3$@ 序列）";
+"Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "所选项目的命令：%1$@ 或 %2$@\n生成器：%3$@ 或 %4$@\n序列：%5$@";
+"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ 个序列——↩ 以 %2$@ 个所选项目运行 · Esc 返回";
+"Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "用 %@ 或右键菜单运行序列。如果所选项目少于序列所用的数量，序列会在第一个缺少的项目处停止。";

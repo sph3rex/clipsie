@@ -149,8 +149,6 @@
 "Fuzzy (tolerates typos)" = "あいまい（入力ミスを許容）";
 "Regular expression" = "正規表現";
 "Search mode: %@ — click to change" = "検索モード: %@ — クリックで変更";
-"Search clipboard   (?? help, %@ item commands, %@ generators)" = "クリップボードを検索   （?? ヘルプ、%1$@ 項目コマンド、%2$@ ジェネレータ）";
-"Commands for the selected item: %@ or %@\nGenerators: %@ or %@" = "選択した項目のコマンド: %1$@ または %2$@\nジェネレータ: %3$@ または %4$@";
 "Help — type to search · Esc closes" = "ヘルプ — 入力で検索 · Esc で閉じる";
 "Editing — ⌘S or ⌘↩ save · Esc cancel · selecting another item saves" = "編集中 — ⌘S または ⌘↩ で保存 · Esc でキャンセル · ほかの項目を選ぶと保存";
 "%@ generators — ↩ run · Esc back to history" = "ジェネレータ %@ 件 — ↩ で実行 · Esc で履歴に戻る";
@@ -244,7 +242,6 @@
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "選択した %2$@ 件の項目のコマンド %1$@ 件 — ↩ で各項目に実行 · %3$@ ジェネレータ · Esc で戻る";
 "Input: %@ selected items, each run separately" = "入力: 選択した %@ 件の項目（1 件ずつ実行）";
 "Could not save the sequence" = "シーケンスを保存できませんでした";
-"“%@” needs %@ selected items" = "「%1$@」には %2$@ 件の項目の選択が必要です";
 "“%@” stopped" = "「%@」は停止しました";
 "A quote in the sequence isn't closed." = "シーケンス内の引用符が閉じていません。";
 "commands.json isn't a JSON list." = "commands.json は JSON のリストではありません。";
@@ -289,3 +286,7 @@
 "crop needs x, y, width and height." = "crop には x、y、width、height が必要です。";
 "resize needs width, height, max or scale." = "resize には width、height、max、scale のいずれかが必要です。";
 "rotate only turns by multiples of 90 degrees." = "rotate は 90 度の倍数でのみ回転します。";
+"Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "検索（?? ヘルプ、%1$@ 項目コマンド、%2$@ ジェネレータ、%3$@ シーケンス）";
+"Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "選択した項目のコマンド: %1$@ または %2$@\nジェネレータ: %3$@ または %4$@\nシーケンス: %5$@";
+"%@ sequences — ↩ runs on %@ selected items · Esc back" = "シーケンス %1$@ 件 — ↩ で選択した %2$@ 件に実行 · Esc で戻る";
+"Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "シーケンスは %@ または右クリックメニューで実行します。選択した項目がシーケンスで使う数より少ない場合は、最初に足りない項目のところで止まります。";

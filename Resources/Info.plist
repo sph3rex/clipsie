@@ -19,6 +19,11 @@
 		<string>ro</string>
 		<string>zh-Hans</string>
 		<string>ja</string>
+		<string>pl</string>
+		<string>hu</string>
+		<string>bg</string>
+		<string>hr</string>
+		<string>el</string>
 	</array>
 	<key>CFBundleName</key>
 	<string>Clipsie</string>

@@ -165,12 +165,6 @@ struct UserCommand: Decodable {
         }
     }
 
-    var itemsNeeded: Int {
-        steps?.reduce(0) { needed, step in
-            if case .item(let number) = step { return max(needed, number) }
-            return needed
-        } ?? 1
-    }
 
     var localShortcut: Shortcut? { shortcut.flatMap(Shortcut.init) }
 

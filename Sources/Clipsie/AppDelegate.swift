@@ -138,6 +138,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         }
         history.commandsPrefix = config.commandsPrefix
         history.generatorsPrefix = config.generatorsPrefix
+        history.sequencesPrefix = config.sequencesPrefix
         history.commandsShortcut = paletteShortcut(config.commandsShortcut, key: "commandsShortcut")
         history.generatorsShortcut = paletteShortcut(config.generatorsShortcut, key: "generatorsShortcut")
         store.prune(maxItems: config.maxItems)
@@ -342,13 +343,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     private func runSequence(_ command: UserCommand, steps: [SequenceStep], itemIDs: [Int64], target: NSRunningApplication?) {
         let items = itemIDs.map { store.representations(for: $0) }
         var actions: [Paster.Action] = []
-        for step in steps {
+        steps: for step in steps {
             switch step {
             case .item(let number):
-                guard number <= items.count else {
-                    showError(L("“%@” needs %@ selected items", command.displayName, String(command.itemsNeeded)), "")
-                    return
-                }
+                guard number <= items.count else { break steps }
                 actions.append(.paste(items[number - 1]))
             case .text(let text):
                 actions.append(.paste([Representation(itemIndex: 0, type: Content.utf8Type, data: Data(text.utf8))]))
@@ -357,6 +355,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             case .wait(let seconds):
                 actions.append(.wait(seconds))
             }
+        }
+        guard !actions.isEmpty else {
+            NSSound.beep()
+            return
         }
         if history.isVisible { history.hide() }
         if NSApp.isActive { NSApp.hide(nil) }

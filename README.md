@@ -21,7 +21,8 @@ Clipsie lives in the menu bar and remembers everything you copy: text, formatted
 - **Text in images:** screenshots are searchable by the text in them (recognized on your Mac).
 - **Commands in JavaScript,** run sandboxed: transform an item (trim, change case, hash, Base64, JSON…) or generate something (UUID, password, timestamp), and add your own in a few lines.
 - **Calculator and unit converter** in the search: `15% of 80`, `5 km in miles`, `100 f to c`.
-- **In your language:** English, German, French, Spanish, Romanian, Chinese (Simplified) and Japanese, following your macOS language (or per app: System Settings → General → Language & Region → Applications). Search filters and calculator words stay English.
+- **Extensible with plugins:** drop a JavaScript file (or a script in any language) into the plugins folder to add your own results to the search, the way the calculator does.
+- **In your language:** English, German, French, Spanish, Romanian, Polish, Hungarian, Bulgarian, Croatian, Greek, Chinese (Simplified) and Japanese, following your macOS language (or per app: System Settings → General → Language & Region → Applications). Search filters and calculator words stay English.
 - **Private by design:** the history is encrypted on disk, passwords from password managers are never recorded, and nothing leaves your Mac.
 
 ## Install
@@ -102,7 +103,7 @@ Commands live in `commands.json` (menu bar icon → Configuration → Edit Comma
 {"name": "UUID without dashes", "input": "none", "script": "clip.uuid().replaceAll('-', '')", "output": "paste"}
 ```
 
-Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` helper API (hashes, Base64, UUIDs, random values, recent items). Automatic commands run on every copy, e.g. to skip one-time codes or strip tracking parameters from links. Search plugins work the same way and add rows to the results, like the built-in calculator. Type `??` in the history window for more examples, the main command options and the whole `clip` API.
+Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` helper API (hashes, Base64, UUIDs, random values, recent items). Automatic commands run on every copy, e.g. to skip one-time codes or strip tracking parameters from links. [Plugins](#plugins) work the same way and add rows to the search results. Type `??` in the history window for more examples, the main command options and the whole `clip` API.
 
 With several items selected, a command runs once per item and the results are joined (`"multiple": "each"`, the default), or once on all their texts joined together (`"multiple": "all"`). Either way, `"separator"` sets what goes between them.
 
@@ -130,7 +131,7 @@ Images are processed in memory and never written to disk; sides are limited to 1
 
 ## Sequences
 
-A sequence pastes several items one after another, with keys and pauses in between: handy for filling the same form again and again. Select the items in the order you want (<kbd>⌘</kbd>-click or <kbd>⇧</kbd><kbd>↓</kbd>), right-click and choose **Save as Sequence…**. From then on it shows up in the commands (<kbd>⌘</kbd><kbd>K</kbd> or `>`) whenever enough items are selected.
+A sequence pastes several items one after another, with keys and pauses in between: handy for filling the same form again and again. Select the items in the order you want (<kbd>⌘</kbd>-click or <kbd>⇧</kbd><kbd>↓</kbd>), right-click and choose **Save as Sequence…**. Run it by typing `>>>` in the search field (or right-click → **Sequences**), with any selection. If fewer items are selected than the sequence uses, it stops at the first missing item: `item 1, tab, item 2, tab, item 3` with two items selected pastes both and stops before `item 3`.
 
 ```json
 {"name": "Fill login form", "sequence": "item 1, tab, item 2, enter"}
@@ -145,16 +146,31 @@ A sequence pastes several items one after another, with keys and pauses in betwe
 
 Steps are separated by commas or new lines; `sequenceStepDelayMs` in `config.json` (default 100) is the pause between steps. A sequence stops if another app comes to the front while it runs.
 
+## Plugins
+
+Plugins add their own rows to the top of the search results while you type, like the built-in calculator (`calc.js`, which is itself a plugin). Put a file in the `plugins` folder (menu bar icon → Configuration → Open Data Folder) and choose Reload Settings & Commands. Each plugin gets the search text, has 2 seconds to answer, and its row pastes with <kbd>↩</kbd> or copies with <kbd>⌘</kbd><kbd>C</kbd>.
+
+**JavaScript** (`.js`), sandboxed with the same `clip` API as commands: the search text is `text`; return a string, `{ value, title }` (`title` is what the row shows, `value` what gets pasted), or `null` for no row. For example, `plugins/hex.js` turns `hex 255` into `ff`:
+
+```js
+const m = /^hex (\d+)$/.exec(text.trim());
+if (!m) return null;
+const hex = Number(m[1]).toString(16);
+return { value: hex, title: `${m[1]} = 0x${hex}` };
+```
+
+**Any other language:** an executable file (`chmod +x`) gets the search text on standard input and in `$CLIP_QUERY`, and prints the value on the first line and an optional title on the second; a non-zero exit or empty output means no row. These run as normal programs, not sandboxed, and on every search, so keep them fast and only install ones you trust.
+
 ## Settings
 
-Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
+Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), the sequences prefix (`sequencesPrefix`, default `>>>`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
 
 ## Privacy
 
 - **Encrypted history.** Items are stored in an SQLite database encrypted with [SQLCipher](https://www.zetetic.net/sqlcipher/) (AES-256); the key is kept in your login Keychain.
 - **Skips secrets.** Copies that password managers mark as concealed or transient are never recorded, nor is anything from apps in `ignoredApps`. A default command skips one-time codes.
 - **Stays on your Mac.** Clipsie makes no network requests of its own, except to load the icons of the web-search buttons and, only if you turn on `linkPreviews`, the title of a selected link.
-- **Sandboxed scripts.** JavaScript commands and plugins can't read files or use the network. Shell commands are possible too, for menu commands only, and are marked ⚠︎ because they are not sandboxed.
+- **Sandboxed scripts.** JavaScript commands and plugins can't read files or use the network. Shell commands (menu commands only, marked ⚠︎) and executable plugins are possible too, but they are not sandboxed.
 - **Export** (menu bar icon → Import & Export → Export as JSON…) writes an unencrypted file, for backups or moving to another Mac; Import reads it back.
 
 ## Uninstall
@@ -174,7 +190,7 @@ The interface is translated in `Resources/<language>.lproj/Localizable.strings`;
 python3 tools/check-translations.py    # lists, per language, strings missing from the translations
 ```
 
-Translations exist for German, French, Spanish, Romanian, Chinese (Simplified) and Japanese. To add a language, copy one of the files to a new `<code>.lproj` folder, translate the right-hand sides, and add the code to `CFBundleLocalizations` in `Resources/Info.plist`.
+Translations exist for German, French, Spanish, Romanian, Polish, Hungarian, Bulgarian, Croatian, Greek, Chinese (Simplified) and Japanese. To add a language, copy one of the files to a new `<code>.lproj` folder, translate the right-hand sides, and add the code to `CFBundleLocalizations` in `Resources/Info.plist`.
 
 ## In other languages
 
@@ -185,6 +201,16 @@ Translations exist for German, French, Spanish, Romanian, Chinese (Simplified) a
 **Español** — Clipsie es un gestor del portapapeles rápido y privado para macOS: un historial del portapapeles con búsqueda, etiquetas, almacenamiento cifrado, reconocimiento de texto en imágenes y comandos JavaScript. Se instala con Homebrew (ver arriba); la interfaz está en español.
 
 **Română** — Clipsie este un manager de clipboard rapid și privat pentru macOS: un istoric al clipboardului cu căutare, etichete, stocare criptată, recunoașterea textului din imagini și comenzi JavaScript. Se instalează cu Homebrew (vezi mai sus); interfața este în română.
+
+**Polski** — Clipsie to szybki, prywatny menedżer schowka dla macOS: przeszukiwalna historia schowka z tagami, szyfrowanym przechowywaniem, rozpoznawaniem tekstu na obrazach i poleceniami JavaScript. Instalacja przez Homebrew (patrz wyżej); interfejs jest po polsku.
+
+**Magyar** — A Clipsie egy gyors, adatvédelmet tisztelő vágólapkezelő macOS-re: kereshető vágólap-előzmények címkékkel, titkosított tárolással, képszövegfelismeréssel és JavaScript-parancsokkal. Telepítés Homebrew-val (lásd fent); a felület magyar nyelvű.
+
+**Български** — Clipsie е бърз и поверителен мениджър на клипборда за macOS: история на клипборда с търсене, етикети, шифровано съхранение, разпознаване на текст в изображения и JavaScript команди. Инсталира се с Homebrew (вижте по-горе); интерфейсът е на български.
+
+**Hrvatski** — Clipsie je brz i privatan upravitelj međuspremnika za macOS: pretraživa povijest međuspremnika s oznakama, šifriranom pohranom, prepoznavanjem teksta na slikama i JavaScript naredbama. Instalira se putem Homebrewa (vidi gore); sučelje je na hrvatskom.
+
+**Ελληνικά** — Το Clipsie είναι ένας γρήγορος, ιδιωτικός διαχειριστής προχείρου για macOS: ιστορικό προχείρου με αναζήτηση, ετικέτες, κρυπτογραφημένη αποθήκευση, αναγνώριση κειμένου σε εικόνες και εντολές JavaScript. Εγκαθίσταται με το Homebrew (δείτε παραπάνω)· η διεπαφή είναι στα ελληνικά.
 
 **简体中文** — Clipsie 是一款快速、注重隐私的 macOS 剪贴板管理器：可搜索的剪贴板历史记录，支持标签、加密存储、图片文字识别（OCR）和 JavaScript 命令。可通过 Homebrew 安装（见上文）；界面支持简体中文。
 

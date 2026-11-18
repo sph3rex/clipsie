@@ -52,6 +52,7 @@ struct Config: Codable {
     var showPreview = true
     var commandsPrefix = ">"
     var generatorsPrefix = ">>"
+    var sequencesPrefix = ">>>"
     var commandsShortcut = "cmd+k"
     var generatorsShortcut = "cmd+shift+e"
     var multiPasteSeparator = "\n"
@@ -100,6 +101,7 @@ struct Config: Codable {
         showPreview = try c.decodeIfPresent(Bool.self, forKey: .showPreview) ?? d.showPreview
         commandsPrefix = try c.decodeIfPresent(String.self, forKey: .commandsPrefix) ?? d.commandsPrefix
         generatorsPrefix = try c.decodeIfPresent(String.self, forKey: .generatorsPrefix) ?? d.generatorsPrefix
+        sequencesPrefix = try c.decodeIfPresent(String.self, forKey: .sequencesPrefix) ?? d.sequencesPrefix
         commandsShortcut = try c.decodeIfPresent(String.self, forKey: .commandsShortcut) ?? d.commandsShortcut
         generatorsShortcut = try c.decodeIfPresent(String.self, forKey: .generatorsShortcut) ?? d.generatorsShortcut
         multiPasteSeparator = try c.decodeIfPresent(String.self, forKey: .multiPasteSeparator) ?? d.multiPasteSeparator

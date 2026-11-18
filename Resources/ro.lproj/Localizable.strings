@@ -112,8 +112,6 @@
 "Images" = "Imagini";
 "Clipboard History" = "Istoric clipboard";
 "Switch list (Tab)" = "Schimbă lista (Tab)";
-"Search clipboard   (?? help, %@ item commands, %@ generators)" = "Caută în clipboard   (?? ajutor, %1$@ comenzi, %2$@ generatoare)";
-"Commands for the selected item: %@ or %@\nGenerators: %@ or %@" = "Comenzi pentru elementul selectat: %1$@ sau %2$@\nGeneratoare: %3$@ sau %4$@";
 "Help — type to search · Esc closes" = "Ajutor — tastează pentru căutare · Esc închide";
 "Editing — ⌘S or ⌘↩ save · Esc cancel · selecting another item saves" = "Editare — ⌘S sau ⌘↩ salvează · Esc anulează · alt element salvează";
 "%@ generators — ↩ run · Esc back to history" = "%@ generatoare — ↩ rulează · Esc înapoi la istoric";
@@ -244,7 +242,6 @@
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "%1$@ comenzi pentru %2$@ elemente selectate — ↩ rulează pe fiecare · %3$@ generatoare · Esc înapoi";
 "Input: %@ selected items, each run separately" = "Intrare: %@ elemente selectate, fiecare separat";
 "Could not save the sequence" = "Secvența nu a putut fi salvată";
-"“%@” needs %@ selected items" = "„%1$@” are nevoie de %2$@ elemente selectate";
 "“%@” stopped" = "„%@” s-a oprit";
 "A quote in the sequence isn't closed." = "Ghilimelele din secvență nu sunt închise.";
 "commands.json isn't a JSON list." = "commands.json nu este o listă JSON.";
@@ -289,3 +286,7 @@
 "crop needs x, y, width and height." = "crop are nevoie de x, y, width și height.";
 "resize needs width, height, max or scale." = "resize are nevoie de width, height, max sau scale.";
 "rotate only turns by multiples of 90 degrees." = "rotate rotește doar în multipli de 90 de grade.";
+"Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Caută (?? ajutor, %1$@ comenzi, %2$@ generatoare, %3$@ secvențe)";
+"Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Comenzi pentru elementul selectat: %1$@ sau %2$@\nGeneratoare: %3$@ sau %4$@\nSecvențe: %5$@";
+"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ secvențe — ↩ rulează cu %2$@ elemente selectate · Esc înapoi";
+"Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Rulează secvențele cu %@ sau din meniul contextual. Dacă sunt selectate mai puține elemente decât folosește secvența, ea se oprește la primul element lipsă.";

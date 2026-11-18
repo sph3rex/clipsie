@@ -1,7 +1,7 @@
 import AppKit
 
 enum Help {
-    static func text(commands: String, generators: String, quickPaste: String?, move: String?) -> NSAttributedString {
+    static func text(commands: String, generators: String, sequences: String, quickPaste: String?, move: String?) -> NSAttributedString {
         let result = NSMutableAttributedString()
         func heading(_ text: String) {
             result.append(NSAttributedString(string: (result.length == 0 ? "" : "\n") + L(text) + "\n", attributes: [
@@ -104,6 +104,7 @@ enum Help {
         row("\"text\"", "this text")
         row("wait 200", "pause 200 ms (also 0.5s)")
         row("tab, enter, cmd+a", "press a key")
+        note(L("Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item.", sequences))
         note("Commands on several items: \"multiple\": \"each\" runs once per item (default), \"all\" once on all texts joined with \"separator\".")
 
         heading("Plugins — plugins/ in the data folder")
