@@ -63,7 +63,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private let searchIcon = NSButton()
     private let searchField = NSTextField()
     private let paletteButton = NSButton()
-    private let tableView = NSTableView()
+    private let tableView = HistoryTableView()
     private let tableScroll = NSScrollView()
     private let split = NSSplitView()
     private let previewContainer = HoverView()
@@ -261,6 +261,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         tableView.target = self
         tableView.doubleAction = #selector(tableDoubleClicked)
         tableView.registerForDraggedTypes([Self.rowDragType])
+        tableView.canDrag = { [weak self] in self?.isMoveGesture ?? false }
         tableView.setDraggingSourceOperationMask(.move, forLocal: true)
         tableView.draggingDestinationFeedbackStyle = .gap
         let contextMenu = NSMenu()
@@ -794,6 +795,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cell = tableView.makeView(withIdentifier: ItemCellView.identifier, owner: nil) as? ItemCellView ?? ItemCellView()
+        cell.isHidden = false
+        cell.alphaValue = 1
         if let paletteCommands, row < paletteCommands.count {
             cell.configure(number: row + 1, command: paletteCommands[row])
         } else if let result = pluginResult(at: row) {
@@ -805,15 +808,19 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     private static let rowDragType = NSPasteboard.PasteboardType("local.clipsie.row")
+    private var droppedID: Int64?
 
     private var canMoveItems: Bool {
         tab == .history && paletteCommands == nil && !isShowingHelp && editingItemID == nil
     }
 
+    private var isMoveGesture: Bool {
+        guard canMoveItems, let modifiers = moveItemModifiers else { return false }
+        return NSEvent.modifierFlags.intersection([.command, .shift, .option, .control]) == modifiers
+    }
+
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
-        guard canMoveItems, let modifiers = moveItemModifiers,
-              NSEvent.modifierFlags.intersection([.command, .shift, .option, .control]) == modifiers,
-              let index = idIndex(forRow: row) else { return nil }
+        guard isMoveGesture, let index = idIndex(forRow: row) else { return nil }
         let item = NSPasteboardItem()
         item.setString(String(ids[index]), forType: Self.rowDragType)
         return item
@@ -836,8 +843,15 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if from < to { to -= 1 }
         to = min(to, list.count)
         store.move(id, below: to > 0 ? list[to - 1] : nil, above: to < list.count ? list[to] : nil)
-        runSearch(selecting: id)
+        droppedID = id
         return true
+    }
+
+    func tableView(_ tableView: NSTableView, draggingSession session: NSDraggingSession, endedAt screenPoint: NSPoint,
+                   operation: NSDragOperation) {
+        guard let id = droppedID else { return }
+        droppedID = nil
+        runSearch(selecting: id)
     }
 
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
@@ -1704,6 +1718,14 @@ final class HoverView: NSView {
     override func mouseExited(with event: NSEvent) {
         isHovered = false
         onHoverChanged?(false)
+    }
+}
+
+final class HistoryTableView: NSTableView {
+    var canDrag: () -> Bool = { true }
+
+    override func canDragRows(with rowIndexes: IndexSet, at mouseDownPoint: NSPoint) -> Bool {
+        canDrag() && super.canDragRows(with: rowIndexes, at: mouseDownPoint)
     }
 }
 
