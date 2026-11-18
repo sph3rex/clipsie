@@ -1,9 +1,9 @@
 cask "clipsie" do
   arch arm: "arm64", intel: "x86_64"
 
-  version "0.5.0"
-  sha256 arm:   "296cb6bdc834d1126282100cc1b251bfb039a5fbce72871375a71fbc6671e562",
-         intel: "e7e6a9ecfcd298b2953eb42bb4812dc84f585be99155443e726c27f2b0127a24"
+  version "0.6.0"
+  sha256 arm:   "91df794ea21f2cca3f7f8c0a12c9623e18efa3aa81f7cb7e14f5d3feea63c8b8",
+         intel: "2977db8c5d3707ba6e41960d77cf57f7bba222888526a738c2bd434f77f2591a"
 
   url "https://github.com/sph3rex/clipsie/releases/download/v#{version}/Clipsie-#{version}-#{arch}.zip"
   name "Clipsie"
