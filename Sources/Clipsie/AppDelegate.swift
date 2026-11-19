@@ -117,7 +117,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         history.searchMode = config.searchMode
         store.setSearchMode(config.searchMode)
         history.searchProviders = config.searchProviders
-        history.plugins = Plugins.load()
+        history.plugins = Plugins.load(active: config.activePlugins)
         if config.quickPasteModifiers.isEmpty {
             history.quickPasteModifiers = nil
         } else if let modifiers = Shortcut.modifiers(config.quickPasteModifiers), !modifiers.isEmpty {
@@ -141,6 +141,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         history.sequencesPrefix = config.sequencesPrefix
         history.commandsShortcut = paletteShortcut(config.commandsShortcut, key: "commandsShortcut")
         history.generatorsShortcut = paletteShortcut(config.generatorsShortcut, key: "generatorsShortcut")
+        history.repeatCommandShortcut = paletteShortcut(config.repeatCommandShortcut, key: "repeatCommandShortcut")
         store.prune(maxItems: config.maxItems)
         ocr.isEnabled = config.ocr
         ocr.languages = config.ocrLanguages
@@ -319,6 +320,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     }
 
     func run(_ command: UserCommand, itemIDs: [Int64], target: NSRunningApplication?) {
+        CommandUsage.record(command.name)
         if let steps = command.steps {
             runSequence(command, steps: steps, itemIDs: itemIDs, target: target)
         } else if itemIDs.count > 1, command.input == .item, command.multiple == .all {

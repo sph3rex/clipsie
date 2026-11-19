@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Parancsok a kijelölt elemhez: %1$@ vagy %2$@\nGenerátorok: %3$@ vagy %4$@\nSorozatok: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ sorozat — ↩ %2$@ kijelölt elemmel fut · Esc vissza";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "A sorozatokat a(z) %@ vagy a helyi menü indítja. Ha kevesebb elem van kijelölve, mint amennyit a sorozat használ, az első hiányzó elemnél megáll.";
+"commands · generators · sequences, when the search is empty" = "parancsok · generátorok · sorozatok, ha a keresés üres";
+"run the last command again" = "az utolsó parancs újbóli futtatása";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Írd be egy generátor nevének legalább 3 betűjét, és a találatok tetején jelenik meg. A palettákon a leggyakrabban használt parancsok állnak elöl, és a kezdőbetűk is működnek: bn megtalálja a Beillesztés NAGYBETŰVEL parancsot.";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Csak a config.json activePlugins listájában szereplő bővítmények futnak; alapértelmezés: [\"calc.js\"].";
+"Paste as AI context" = "Beillesztés MI-kontextusként";
+"Paste without terminal colours" = "Beillesztés terminálszínek nélkül";
+"Paste with secrets redacted" = "Beillesztés kitakart titkokkal";
+"≈ %@ tokens" = "≈ %@ token";

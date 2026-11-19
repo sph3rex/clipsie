@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Befehle für den gewählten Eintrag: %1$@ oder %2$@\nGeneratoren: %3$@ oder %4$@\nSequenzen: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ Sequenzen – ↩ läuft mit %2$@ ausgewählten Einträgen · Esc zurück";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Sequenzen startest du mit %@ oder über das Kontextmenü. Sind weniger Einträge ausgewählt, als die Sequenz verwendet, hält sie beim ersten fehlenden Eintrag an.";
+"commands · generators · sequences, when the search is empty" = "Befehle · Generatoren · Sequenzen, wenn die Suche leer ist";
+"run the last command again" = "den letzten Befehl erneut ausführen";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Tippe 3 oder mehr Buchstaben eines Generatornamens, um ihn oben in den Suchergebnissen zu sehen. Die Paletten zeigen deine meistgenutzten Befehle zuerst, und Anfangsbuchstaben funktionieren auch: ige findet In GROSSBUCHSTABEN einfügen.";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Nur Plugins, die in activePlugins in config.json stehen, werden ausgeführt; Standard ist [\"calc.js\"].";
+"Paste as AI context" = "Als KI-Kontext einfügen";
+"Paste without terminal colours" = "Ohne Terminalfarben einfügen";
+"Paste with secrets redacted" = "Mit geschwärzten Geheimnissen einfügen";
+"≈ %@ tokens" = "≈ %@ Tokens";

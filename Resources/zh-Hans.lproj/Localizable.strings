@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "所选项目的命令：%1$@ 或 %2$@\n生成器：%3$@ 或 %4$@\n序列：%5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ 个序列——↩ 以 %2$@ 个所选项目运行 · Esc 返回";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "用 %@ 或右键菜单运行序列。如果所选项目少于序列所用的数量，序列会在第一个缺少的项目处停止。";
+"commands · generators · sequences, when the search is empty" = "命令 · 生成器 · 序列（搜索为空时）";
+"run the last command again" = "再次运行上一个命令";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "输入生成器名称中的 3 个或更多字母，它就会显示在搜索结果顶部。面板会优先列出你最常用的命令，也可以用英文首字母：pu 可找到 Paste UPPERCASE。";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "只有在 config.json 的 activePlugins 中列出的插件才会运行；默认为 [\"calc.js\"]。";
+"Paste as AI context" = "作为 AI 上下文粘贴";
+"Paste without terminal colours" = "去除终端颜色后粘贴";
+"Paste with secrets redacted" = "隐去密钥后粘贴";
+"≈ %@ tokens" = "≈ %@ 个 token";

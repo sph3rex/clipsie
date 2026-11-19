@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Comandos para el elemento seleccionado: %1$@ o %2$@\nGeneradores: %3$@ o %4$@\nSecuencias: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ secuencias — ↩ se ejecuta con %2$@ elementos seleccionados · Esc volver";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Ejecuta las secuencias con %@ o desde el menú contextual. Si hay menos elementos seleccionados de los que usa la secuencia, se detiene en el primero que falta.";
+"commands · generators · sequences, when the search is empty" = "comandos · generadores · secuencias, con la búsqueda vacía";
+"run the last command again" = "repetir el último comando";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Escribe 3 o más letras del nombre de un generador para verlo arriba en los resultados. Las paletas muestran primero los comandos que más usas, y también sirven las iniciales: pem encuentra Pegar en MAYÚSCULAS.";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Solo se ejecutan los plugins listados en activePlugins de config.json; por defecto [\"calc.js\"].";
+"Paste as AI context" = "Pegar como contexto para IA";
+"Paste without terminal colours" = "Pegar sin colores de terminal";
+"Paste with secrets redacted" = "Pegar con los secretos ocultos";
+"≈ %@ tokens" = "≈ %@ tokens";

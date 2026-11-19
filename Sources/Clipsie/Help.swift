@@ -1,7 +1,8 @@
 import AppKit
 
 enum Help {
-    static func text(commands: String, generators: String, sequences: String, quickPaste: String?, move: String?) -> NSAttributedString {
+    static func text(commands: String, generators: String, sequences: String, quickPaste: String?, move: String?,
+                     repeatCommand: String?) -> NSAttributedString {
         let result = NSMutableAttributedString()
         func heading(_ text: String) {
             result.append(NSAttributedString(string: (result.length == 0 ? "" : "\n") + L(text) + "\n", attributes: [
@@ -60,7 +61,10 @@ enum Help {
         row("⇥  ⇧⇥", "History · Images · Tagged")
         row(commands, "commands for the selected item")
         row(generators, "generators (UUID, timestamp, password…)")
+        row("→  ←", "commands · generators · sequences, when the search is empty")
+        if let repeatCommand { row(repeatCommand, "run the last command again") }
         row("Esc", "clear the search, then close")
+        note("Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE.")
 
         heading("Tags")
         note("Tagged items are listed in Tagged and kept there when they leave History (pruning, delete, Clear History). "
@@ -110,6 +114,7 @@ enum Help {
         heading("Plugins — plugins/ in the data folder")
         note("A .js file gets the search text as `text` and returns a string or { value, title }; its row is shown on top. "
             + "The built-in calculator: 3 plus 4, 15% of 80, 2^10, 5 km in miles, 100 f to c.")
+        note("Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"].")
 
         heading("Files — menu bar → Configuration → Open Data Folder")
         note("config.json (settings), commands.json, plugins/, scripts/ (for \"scriptFile\"). The history itself is encrypted.")

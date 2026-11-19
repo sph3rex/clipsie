@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "選択した項目のコマンド: %1$@ または %2$@\nジェネレータ: %3$@ または %4$@\nシーケンス: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "シーケンス %1$@ 件 — ↩ で選択した %2$@ 件に実行 · Esc で戻る";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "シーケンスは %@ または右クリックメニューで実行します。選択した項目がシーケンスで使う数より少ない場合は、最初に足りない項目のところで止まります。";
+"commands · generators · sequences, when the search is empty" = "コマンド · ジェネレータ · シーケンス（検索欄が空のとき）";
+"run the last command again" = "最後のコマンドをもう一度実行";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "ジェネレータ名の文字を 3 文字以上入力すると、検索結果の一番上に表示されます。パレットではよく使うコマンドが先に並び、英語名の頭文字でも探せます: pu で Paste UPPERCASE が見つかります。";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "config.json の activePlugins に記載されたプラグインだけが実行されます。既定値は [\"calc.js\"] です。";
+"Paste as AI context" = "AI 用コンテキストとしてペースト";
+"Paste without terminal colours" = "ターミナルの色を除いてペースト";
+"Paste with secrets redacted" = "秘密情報を伏せてペースト";
+"≈ %@ tokens" = "≈ %@ トークン";

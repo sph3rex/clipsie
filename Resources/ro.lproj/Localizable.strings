@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Comenzi pentru elementul selectat: %1$@ sau %2$@\nGeneratoare: %3$@ sau %4$@\nSecvențe: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ secvențe — ↩ rulează cu %2$@ elemente selectate · Esc înapoi";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Rulează secvențele cu %@ sau din meniul contextual. Dacă sunt selectate mai puține elemente decât folosește secvența, ea se oprește la primul element lipsă.";
+"commands · generators · sequences, when the search is empty" = "comenzi · generatoare · secvențe, când căutarea e goală";
+"run the last command again" = "rulează din nou ultima comandă";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Tastează cel puțin 3 litere din numele unui generator ca să apară primul în rezultate. Paletele arată întâi comenzile folosite cel mai des și merg și inițialele: lcm găsește Lipește cu MAJUSCULE.";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Rulează doar pluginurile listate în activePlugins din config.json; implicit [\"calc.js\"].";
+"Paste as AI context" = "Lipește ca context pentru AI";
+"Paste without terminal colours" = "Lipește fără culorile terminalului";
+"Paste with secrets redacted" = "Lipește cu secretele ascunse";
+"≈ %@ tokens" = "≈ %@ tokenuri";

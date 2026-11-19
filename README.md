@@ -75,6 +75,8 @@ Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar i
 | <kbd>⇥</kbd> | switch between History, Images and Tagged |
 | <kbd>⌘</kbd><kbd>K</kbd> or `>` | commands for the selected item |
 | <kbd>⌘</kbd><kbd>⇧</kbd><kbd>E</kbd> or `>>` | generators (UUID, password, timestamp…) |
+| <kbd>→</kbd> / <kbd>←</kbd> | with an empty search: cycle commands → generators → sequences → back |
+| <kbd>⌘</kbd><kbd>R</kbd> | run the last command again, on the selected items |
 | `` ``` `` typed quickly | paste the item as a Markdown code block |
 | `??` typed quickly | help: all keys, search filters and script examples |
 | <kbd>Esc</kbd> | clear the search, then close |
@@ -103,11 +105,23 @@ Commands live in `commands.json` (menu bar icon → Configuration → Edit Comma
 {"name": "UUID without dashes", "input": "none", "script": "clip.uuid().replaceAll('-', '')", "output": "paste"}
 ```
 
+To get there faster: type 3 or more letters of a generator's name in the search (`uuid`, `pass`, `unix`) and it shows up on top, ready for <kbd>↩</kbd>. The palettes list your most used commands first, and match initials too (`pu` → Paste UPPERCASE).
+
 Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` helper API (hashes, Base64, UUIDs, random values, recent items). Automatic commands run on every copy, e.g. to skip one-time codes or strip tracking parameters from links. [Plugins](#plugins) work the same way and add rows to the search results. Type `??` in the history window for more examples, the main command options and the whole `clip` API.
 
 With several items selected, a command runs once per item and the results are joined (`"multiple": "each"`, the default), or once on all their texts joined together (`"multiple": "all"`). Either way, `"separator"` sets what goes between them.
 
 `"types"` limits a command to kinds of items: `text`, `rich`, `image`, `file`, `link`, `color`, `other`. Without it, a command applies to items that have text or files.
+
+## For AI chats
+
+Built-in commands for pasting into ChatGPT, Claude and the like (<kbd>⌘</kbd><kbd>K</kbd> or right-click):
+
+- **Paste as AI context** wraps each selected item in a code block, headed by the app it came from, so several snippets arrive as one clearly separated prompt.
+- **Paste without terminal colours** removes the colour and cursor codes that terminal output often carries.
+- **Paste with secrets redacted** replaces API keys and tokens (OpenAI, Anthropic, Stripe, GitHub, GitLab, AWS, Slack, Google), JWTs, `Bearer` tokens, passwords in URLs, `password=` / `token:` / `client_secret` values and private keys with placeholders like `[API KEY]`. It's a best effort, not a guarantee: read before you send.
+
+The preview header shows a rough token count (≈ characters ÷ 4) for text items. Like the image actions, these commands can be replaced by one of yours with the same name in `commands.json`, e.g. to add your own patterns to the redaction, or hidden with `"enabled": false`.
 
 ## Images
 
@@ -148,7 +162,7 @@ Steps are separated by commas or new lines; `sequenceStepDelayMs` in `config.jso
 
 ## Plugins
 
-Plugins add their own rows to the top of the search results while you type, like the built-in calculator (`calc.js`, which is itself a plugin). Put a file in the `plugins` folder (menu bar icon → Configuration → Open Data Folder) and choose Reload Settings & Commands. Each plugin gets the search text, has 2 seconds to answer, and its row pastes with <kbd>↩</kbd> or copies with <kbd>⌘</kbd><kbd>C</kbd>.
+Plugins add their own rows to the top of the search results while you type, like the built-in calculator (`calc.js`, which is itself a plugin). Put a file in the `plugins` folder (menu bar icon → Configuration → Open Data Folder), add its file name to `activePlugins` in `config.json` (default `["calc.js"]`; remove it to turn the calculator off) and choose Reload Settings & Commands. Each plugin gets the search text, has 2 seconds to answer, and its row pastes with <kbd>↩</kbd> or copies with <kbd>⌘</kbd><kbd>C</kbd>.
 
 **JavaScript** (`.js`), sandboxed with the same `clip` API as commands: the search text is `text`; return a string, `{ value, title }` (`title` is what the row shows, `value` what gets pasted), or `null` for no row. For example, `plugins/hex.js` turns `hex 255` into `ff`:
 
@@ -163,7 +177,7 @@ return { value: hex, title: `${m[1]} = 0x${hex}` };
 
 ## Settings
 
-Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), the sequences prefix (`sequencesPrefix`, default `>>>`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
+Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), the sequences prefix (`sequencesPrefix`, default `>>>`), the repeat-last-command key (`repeatCommandShortcut`, default `cmd+r`), which plugins run (`activePlugins`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
 
 ## Privacy
 

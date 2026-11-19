@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Εντολές για το επιλεγμένο στοιχείο: %1$@ ή %2$@\nΓεννήτριες: %3$@ ή %4$@\nΑκολουθίες: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ ακολουθίες — ↩ εκτέλεση με %2$@ επιλεγμένα στοιχεία · Esc επιστροφή";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Εκτελέστε ακολουθίες με %@ ή από το μενού συντομεύσεων. Αν έχουν επιλεγεί λιγότερα στοιχεία από όσα χρησιμοποιεί η ακολουθία, σταματά στο πρώτο που λείπει.";
+"commands · generators · sequences, when the search is empty" = "εντολές · γεννήτριες · ακολουθίες, όταν η αναζήτηση είναι κενή";
+"run the last command again" = "εκτέλεση της τελευταίας εντολής ξανά";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Πληκτρολογήστε τουλάχιστον 3 γράμματα από το όνομα μιας γεννήτριας για να εμφανιστεί πρώτη στα αποτελέσματα. Οι παλέτες δείχνουν πρώτα τις εντολές που χρησιμοποιείτε περισσότερο, και λειτουργούν και τα αρχικά: εμκ βρίσκει την Επικόλληση με ΚΕΦΑΛΑΙΑ.";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Εκτελούνται μόνο τα πρόσθετα που αναφέρονται στο activePlugins του config.json· προεπιλογή [\"calc.js\"].";
+"Paste as AI context" = "Επικόλληση ως πλαίσιο για AI";
+"Paste without terminal colours" = "Επικόλληση χωρίς χρώματα τερματικού";
+"Paste with secrets redacted" = "Επικόλληση με κρυμμένα μυστικά";
+"≈ %@ tokens" = "≈ %@ tokens";

@@ -242,7 +242,10 @@ struct UserCommand: Decodable {
       {"name": "Make image grayscale", "types": ["image"], "script": "clip.image.grayscale(item.image)", "output": "newItem"},
       {"name": "Convert image to JPEG", "types": ["image"], "script": "clip.image.convert(item.image, 'jpeg', { quality: 0.85 })", "output": "newItem"},
       {"name": "Convert image to PNG", "types": ["image"], "script": "clip.image.convert(item.image, 'png')", "output": "newItem"},
-      {"name": "Copy image as data URL", "types": ["image"], "script": "clip.image.toDataURL(item.image)", "output": "copy"}
+      {"name": "Copy image as data URL", "types": ["image"], "script": "clip.image.toDataURL(item.image)", "output": "copy"},
+      {"name": "Paste as AI context", "script": "let n = 3;\nfor (const run of text.match(/`+/g) || []) if (run.length >= n) n = run.length + 1;\nconst fence = '`'.repeat(n);\nconst app = (item.sourceApp || '').split('.').pop();\nreturn (app ? 'From ' + app + ':\\n' : '') + fence + '\\n' + text.replace(/\\n?$/, '\\n') + fence;", "output": "paste", "separator": "\n\n"},
+      {"name": "Paste without terminal colours", "match": "\u001b", "script": "text.replace(/\\u001b\\][^\\u0007\\u001b]*(?:\\u0007|\\u001b\\\\)/g, '').replace(/\\u001b\\[[0-?]*[ -\\/]*[@-~]/g, '').replace(/\\u001b[ -\\/]*[0-~]/g, '')", "output": "paste"},
+      {"name": "Paste with secrets redacted", "script": "const rules = [\n  [/-----BEGIN [A-Z ]*PRIVATE KEY-----[\\s\\S]*?-----END [A-Z ]*PRIVATE KEY-----/g, '[PRIVATE KEY]'],\n  [/\\b(?:sk|pk|rk)-(?:proj-|ant-[a-z0-9]+-)?[A-Za-z0-9_-]{20,}/g, '[API KEY]'],\n  [/\\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{16,}/g, '[API KEY]'],\n  [/\\bgh[pousr]_[A-Za-z0-9]{36,}/g, '[GITHUB TOKEN]'],\n  [/\\bgithub_pat_[A-Za-z0-9_]{22,}/g, '[GITHUB TOKEN]'],\n  [/\\bglpat-[A-Za-z0-9_-]{20,}/g, '[GITLAB TOKEN]'],\n  [/\\b(?:AKIA|ASIA)[A-Z0-9]{16}\\b/g, '[AWS KEY]'],\n  [/\\bxox[abposr]-[A-Za-z0-9-]{10,}/g, '[SLACK TOKEN]'],\n  [/\\bAIza[0-9A-Za-z_-]{35}/g, '[GOOGLE KEY]'],\n  [/\\beyJ[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}\\.[A-Za-z0-9_-]{8,}/g, '[JWT]'],\n  [/\\b(Bearer|Basic|Token)\\s+[A-Za-z0-9._~+\\/=-]{16,}/gi, '$1 [TOKEN]'],\n  [/(\\/\\/[^\\/\\s:@]+):[^@\\s\\/]+@/g, '$1:[PASSWORD]@'],\n  [/((?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|private[_-]?key)[\"']?\\s*[:=]\\s*[\"']?)[^\\s\"',;]{4,}/gi, '$1[REDACTED]'],\n];\nreturn rules.reduce((t, [re, to]) => t.replace(re, to), text);", "output": "paste"}
     ]
     """#
 
@@ -350,5 +353,29 @@ enum CommandRunner {
         return CommandResult(status: process.terminationStatus,
                              output: String(decoding: output, as: UTF8.self),
                              error: error)
+    }
+}
+
+enum CommandUsage {
+    private static let usageKey = "commandUsage"
+    private static let lastKey = "lastCommand"
+
+    static var last: String? { UserDefaults.standard.string(forKey: lastKey) }
+
+    static func record(_ name: String) {
+        var usage = UserDefaults.standard.dictionary(forKey: usageKey) as? [String: [Double]] ?? [:]
+        usage[name] = [(usage[name]?.first ?? 0) + 1, Date().timeIntervalSince1970]
+        UserDefaults.standard.set(usage, forKey: usageKey)
+        UserDefaults.standard.set(name, forKey: lastKey)
+    }
+
+    static func ranked(_ commands: [UserCommand]) -> [UserCommand] {
+        let usage = UserDefaults.standard.dictionary(forKey: usageKey) as? [String: [Double]] ?? [:]
+        let now = Date().timeIntervalSince1970
+        let scores = commands.map { command -> Double in
+            guard let entry = usage[command.name], entry.count == 2 else { return 0 }
+            return entry[0] * pow(0.5, max(0, now - entry[1]) / (7 * 86_400))
+        }
+        return commands.indices.sorted { (scores[$0], -$0) > (scores[$1], -$1) }.map { commands[$0] }
     }
 }

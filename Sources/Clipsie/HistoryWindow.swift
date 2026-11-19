@@ -42,6 +42,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     var sequencesPrefix = ">>>" { didSet { updatePaletteHelp() } }
     var commandsShortcut = Shortcut("cmd+k") { didSet { updatePaletteHelp() } }
     var generatorsShortcut = Shortcut("cmd+shift+e") { didSet { updatePaletteHelp() } }
+    var repeatCommandShortcut = Shortcut("cmd+r")
     var searchProviders: [SearchProvider] = [] {
         didSet { rebuildSearchButtons() }
     }
@@ -531,32 +532,68 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         return rowCache[id]
     }
 
-    private func apply(_ newIDs: [Int64], selecting id: Int64?) {
+    private func apply(_ newIDs: [Int64], selecting id: Int64?, restoring selection: [Int64] = []) {
         isShowingHelp = false
         ids = newIDs
         rowCache.removeAll()
         tableView.reloadData()
+        let rows = selection.count > 1 ? rowsByID(selection) : [:]
         if rowCount == 0 {
             tableView.deselectAll(nil)
             showPreview(nil)
+        } else if rows.count > 1 {
+            selectionOrder = selection.filter { rows[$0] != nil }
+            tableView.selectRowIndexes(IndexSet(rows.values), byExtendingSelection: false)
+            tableView.scrollRowToVisible(rows[selectionOrder[0]] ?? 0)
         } else {
             select(id.flatMap { ids.firstIndex(of: $0) }.map { $0 + pluginResults.count } ?? 0)
         }
         selectionChanged()
     }
 
+    private func rowsByID(_ wanted: [Int64]) -> [Int64: Int] {
+        let wantedSet = Set(wanted)
+        var rows: [Int64: Int] = [:]
+        for (index, id) in ids.enumerated() where wantedSet.contains(id) { rows[id] = index + pluginResults.count }
+        return rows
+    }
+
     private func runPlugins(_ query: String) {
         pluginGeneration += 1
         let generation = pluginGeneration
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !plugins.isEmpty, !trimmed.isEmpty, paletteMode(query) == nil else {
+        guard !trimmed.isEmpty, paletteMode(query) == nil else {
             setPluginResults([])
             return
         }
+        let generators = generatorResults(for: trimmed)
+        if !generators.isEmpty || plugins.isEmpty { setPluginResults(generators) }
+        guard !plugins.isEmpty else { return }
         Plugins.run(plugins, query: trimmed) { [weak self] results in
             guard let self, generation == self.pluginGeneration, self.paletteCommands == nil else { return }
-            self.setPluginResults(results)
+            self.setPluginResults(generators + results)
         }
+    }
+
+    private func generatorResults(for query: String) -> [PluginResult] {
+        guard query.count >= 3, !SearchQuery(query, mode: searchMode).hasFilters else { return [] }
+        let terms = query.lowercased().split(whereSeparator: \.isWhitespace)
+        let matching = commands.filter { command in
+            guard command.steps == nil, command.input == .none else { return false }
+            let words = Self.words(command.displayName) + Self.words(command.name)
+            return terms.allSatisfy { term in words.contains { $0.hasPrefix(term) } }
+        }
+        return CommandUsage.ranked(matching).prefix(2).map {
+            PluginResult(plugin: "", value: "", title: $0.displayName, command: $0)
+        }
+    }
+
+    private static func words(_ text: String) -> [Substring] {
+        text.lowercased().split { !$0.isLetter && !$0.isNumber }
+    }
+
+    private static func initials(_ text: String) -> String {
+        String(words(text).compactMap(\.first))
     }
 
     private func setPluginResults(_ results: [PluginResult]) {
@@ -579,12 +616,12 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         runPlugins(searchField.stringValue)
     }
 
-    private func runSearch(selecting id: Int64?) {
+    private func runSearch(selecting id: Int64?, restoring selection: [Int64] = []) {
         searchGeneration += 1
         let generation = searchGeneration
         store.ids(matching: searchField.stringValue, in: tab) { [weak self] ids in
             guard let self, generation == self.searchGeneration else { return }
-            self.apply(ids, selecting: id)
+            self.apply(ids, selecting: id, restoring: selection)
         }
     }
 
@@ -609,7 +646,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             showPalette(filter: mode.filter)
         } else if paletteCommands != nil {
             paletteCommands = nil
-            runSearch(selecting: paletteItemIDs.first)
+            runSearch(selecting: paletteItemIDs.first, restoring: paletteItemIDs)
         } else {
             perform(#selector(runPendingSearch), with: nil, afterDelay: 0.08)
         }
@@ -650,12 +687,13 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     @objc private func togglePalette() {
-        switch paletteMode(searchField.stringValue)?.kind {
-        case .none: openPalette(.commands)
-        case .some(.commands): openPalette(.generators)
-        case .some(.generators): openPalette(sequencesPrefix.isEmpty ? nil : .sequences)
-        case .some(.sequences): openPalette(nil)
-        }
+        cyclePalette(forward: true)
+    }
+
+    private func cyclePalette(forward: Bool) {
+        let kinds: [PaletteKind?] = [nil, .commands, .generators] + (sequencesPrefix.isEmpty ? [] : [.sequences])
+        let index = kinds.firstIndex(of: paletteMode(searchField.stringValue)?.kind) ?? 0
+        openPalette(kinds[(index + (forward ? 1 : kinds.count - 1)) % kinds.count])
     }
 
     private func switchPalette(_ kind: PaletteKind) {
@@ -676,9 +714,16 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func showPalette(filter: String) {
         let terms = filter.lowercased().split(whereSeparator: \.isWhitespace)
-        let matching = self.commands.filter { command in
-            isInPalette(command) && terms.allSatisfy { (command.displayName + "\n" + command.name).lowercased().contains($0) }
+        let typed = terms.joined()
+        let candidates = CommandUsage.ranked(commands.filter(isInPalette))
+        let named = candidates.filter { command in
+            terms.allSatisfy { (command.displayName + "\n" + command.name).lowercased().contains($0) }
         }
+        let byInitials = typed.isEmpty ? [] : candidates.filter { command in
+            !named.contains { $0.name == command.name }
+                && [command.displayName, command.name].contains { Self.initials($0).hasPrefix(typed) }
+        }
+        let matching = named + byInitials
         paletteCommands = matching
         tableView.reloadData()
         if matching.isEmpty {
@@ -745,6 +790,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     private func showPluginPreview(_ result: PluginResult) {
+        if let command = result.command {
+            showCommandPreview(command)
+            return
+        }
         setPreviewHeader("")
         previewImage.image = nil
         previewImage.isHidden = true
@@ -798,8 +847,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewScroll.isHidden = false
         previewSearchText = nil
         updateSearchButtons()
-        previewText.string = lines.joined(separator: "\n")
-        previewText.textColor = .textColor
+        previewText.textStorage?.setAttributedString(NSAttributedString(string: lines.joined(separator: "\n"),
+            attributes: [.font: Self.previewFont, .foregroundColor: NSColor.textColor]))
     }
 
     func numberOfRows(in tableView: NSTableView) -> Int {
@@ -929,6 +978,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func activateSelected(plainText: Bool) {
         if paletteCommands != nil {
             runSelectedPaletteCommand()
+        } else if let command = pluginResult(at: tableView.selectedRow)?.command {
+            run(command, itemIDs: [])
         } else if let result = pluginResult(at: tableView.selectedRow) {
             hide()
             actions?.pasteText(result.value, target: targetApp)
@@ -1059,8 +1110,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         var types: [String] = []
         for rep in reps where !types.contains(rep.type) { types.append(rep.type) }
         let size = ByteCountFormatter.string(fromByteCount: Int64(reps.reduce(0) { $0 + $1.data.count }), countStyle: .file)
-        setPreviewHeader(Content.typeSummary(reps) + " · " + size, toolTip: types.joined(separator: "\n"))
         let text = Content.text(reps)
+        let tokens = text.map { " · " + L("≈ %@ tokens", NumberFormatter.localizedString(from: NSNumber(value: ($0.utf8.count + 3) / 4), number: .decimal)) } ?? ""
+        setPreviewHeader(Content.typeSummary(reps) + " · " + size + tokens, toolTip: types.joined(separator: "\n"))
         let image = Content.imageData(reps).flatMap { NSImage(data: $0) }
         if text == nil, recognizedText == nil, let image {
             previewImage.image = image
@@ -1112,7 +1164,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             generators: generatorsShortcut.map { L("%@ or %@", $0.display, generatorsPrefix) } ?? generatorsPrefix,
             sequences: sequencesPrefix,
             quickPaste: quickPasteModifiers.map(Shortcut.symbols),
-            move: moveItemModifiers.map(Shortcut.symbols)))
+            move: moveItemModifiers.map(Shortcut.symbols),
+            repeatCommand: repeatCommandShortcut?.display))
         previewText.scrollToBeginningOfDocument(nil)
         updateStatus()
     }
@@ -1218,7 +1271,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func copySelected() {
         if let result = pluginResult(at: tableView.selectedRow) {
-            actions?.copyText(result.value)
+            if result.command == nil { actions?.copyText(result.value) } else { NSSound.beep() }
             return
         }
         guard let id = selectedID else { return }
@@ -1340,6 +1393,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         updateSearchButtons()
         setPreviewHeader(L("Editing as plain text"))
         previewText.isRichText = false
+        previewText.typingAttributes = [.font: Self.previewFont, .foregroundColor: NSColor.textColor]
         previewText.string = text
         previewText.font = .monospacedSystemFont(ofSize: 12, weight: .regular)
         previewText.textColor = .textColor
@@ -1386,6 +1440,21 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         if rowCount == 0 { showPreview(nil) } else { select(first) }
         selectionChanged()
         updateStatus()
+    }
+
+    private func repeatLastCommand() {
+        guard let name = CommandUsage.last, let command = commands.first(where: { $0.name == name }) else {
+            NSSound.beep()
+            return
+        }
+        let targets = paletteCommands == nil ? commandTargets : paletteItemIDs
+        if command.input == .none && command.steps == nil {
+            run(command, itemIDs: [])
+        } else if !targets.isEmpty, isAvailable(command, subjects: targets.map { CommandSubject(store.representations(for: $0)) }) {
+            run(command, itemIDs: targets)
+        } else {
+            NSSound.beep()
+        }
     }
 
     private func run(_ command: UserCommand, itemIDs: [Int64]) {
@@ -1442,6 +1511,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             }
         case #selector(NSResponder.deleteToBeginningOfLine(_:)):
             deleteSelected()
+        case #selector(NSResponder.moveRight(_:)), #selector(NSResponder.moveLeft(_:)):
+            let text = searchField.stringValue
+            guard text.isEmpty || paletteMode(text)?.filter.isEmpty == true else { return false }
+            cyclePalette(forward: selector == #selector(NSResponder.moveRight(_:)))
         case #selector(NSResponder.insertTab(_:)), #selector(NSResponder.insertBacktab(_:)):
             let index = Self.tabs.firstIndex(of: tab) ?? 0
             let step = selector == #selector(NSResponder.insertBacktab(_:)) ? Self.tabs.count - 1 : 1
@@ -1479,6 +1552,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         }
         if generatorsShortcut?.matches(event) == true {
             switchPalette(.generators)
+            return true
+        }
+        if repeatCommandShortcut?.matches(event) == true {
+            repeatLastCommand()
             return true
         }
         guard modifiers == .command, let key = event.charactersIgnoringModifiers?.lowercased() else { return false }
@@ -1850,6 +1927,10 @@ final class ItemCellView: NSTableCellView {
     }
 
     func configure(number: Int, result: PluginResult) {
+        if let command = result.command {
+            configure(number: number, command: command)
+            return
+        }
         shortcutLabel.stringValue = number <= 9 ? Self.quickPastePrefix + "\(number)" : ""
         iconView.image = NSImage(systemSymbolName: "function", accessibilityDescription: nil)
         marksLabel.stringValue = ""

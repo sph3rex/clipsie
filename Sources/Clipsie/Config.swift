@@ -55,6 +55,8 @@ struct Config: Codable {
     var sequencesPrefix = ">>>"
     var commandsShortcut = "cmd+k"
     var generatorsShortcut = "cmd+shift+e"
+    var repeatCommandShortcut = "cmd+r"
+    var activePlugins = ["calc.js"]
     var multiPasteSeparator = "\n"
     var quickPasteModifiers = "cmd"
     var moveItemModifiers = "cmd"
@@ -104,6 +106,8 @@ struct Config: Codable {
         sequencesPrefix = try c.decodeIfPresent(String.self, forKey: .sequencesPrefix) ?? d.sequencesPrefix
         commandsShortcut = try c.decodeIfPresent(String.self, forKey: .commandsShortcut) ?? d.commandsShortcut
         generatorsShortcut = try c.decodeIfPresent(String.self, forKey: .generatorsShortcut) ?? d.generatorsShortcut
+        repeatCommandShortcut = try c.decodeIfPresent(String.self, forKey: .repeatCommandShortcut) ?? d.repeatCommandShortcut
+        activePlugins = try c.decodeIfPresent([String].self, forKey: .activePlugins) ?? d.activePlugins
         multiPasteSeparator = try c.decodeIfPresent(String.self, forKey: .multiPasteSeparator) ?? d.multiPasteSeparator
         quickPasteModifiers = try c.decodeIfPresent(String.self, forKey: .quickPasteModifiers) ?? d.quickPasteModifiers
         moveItemModifiers = try c.decodeIfPresent(String.self, forKey: .moveItemModifiers) ?? d.moveItemModifiers

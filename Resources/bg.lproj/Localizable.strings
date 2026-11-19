@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Команди за избрания елемент: %1$@ или %2$@\nГенератори: %3$@ или %4$@\nПоследователности: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ последователности — ↩ се изпълнява с %2$@ избрани елемента · Esc обратно";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Изпълнявайте последователностите с %@ или от контекстното меню. Ако са избрани по-малко елементи, отколкото използва последователността, тя спира при първия липсващ.";
+"commands · generators · sequences, when the search is empty" = "команди · генератори · последователности, когато търсенето е празно";
+"run the last command again" = "изпълни отново последната команда";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Въведете поне 3 букви от името на генератор, за да се покаже най-горе в резултатите. Палитрите показват първо най-използваните команди, а работят и инициалите: псгб намира Постави с ГЛАВНИ БУКВИ.";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Изпълняват се само плъгините, изброени в activePlugins в config.json; по подразбиране [\"calc.js\"].";
+"Paste as AI context" = "Постави като контекст за ИИ";
+"Paste without terminal colours" = "Постави без цветовете на терминала";
+"Paste with secrets redacted" = "Постави със скрити тайни";
+"≈ %@ tokens" = "≈ %@ токена";

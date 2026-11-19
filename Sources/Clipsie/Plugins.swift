@@ -5,6 +5,7 @@ struct PluginResult {
     let plugin: String
     let value: String
     let title: String
+    var command: UserCommand? = nil
 }
 
 enum Plugins {
@@ -43,10 +44,11 @@ enum Plugins {
         try FileManager.default.copyItem(at: source, to: url)
     }
 
-    static func load() -> [URL] {
+    static func load(active: [String]) -> [URL] {
         let fm = FileManager.default
-        let files = (try? fm.contentsOfDirectory(at: AppPaths.plugins, includingPropertiesForKeys: nil,
-                                                 options: [.skipsHiddenFiles])) ?? []
+        let files = ((try? fm.contentsOfDirectory(at: AppPaths.plugins, includingPropertiesForKeys: nil,
+                                                  options: [.skipsHiddenFiles])) ?? [])
+            .filter { active.contains($0.lastPathComponent) }
         sources = [:]
         for file in files where file.pathExtension == "js" {
             do {

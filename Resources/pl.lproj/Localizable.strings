@@ -290,3 +290,11 @@
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Polecenia dla zaznaczonego elementu: %1$@ lub %2$@\nGeneratory: %3$@ lub %4$@\nSekwencje: %5$@";
 "%@ sequences — ↩ runs on %@ selected items · Esc back" = "Sekwencje: %1$@ — ↩ uruchamia na zaznaczonych elementach (%2$@) · Esc powrót";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Uruchamiaj sekwencje przez %@ lub menu kontekstowe. Jeśli zaznaczono mniej elementów, niż używa sekwencja, zatrzymuje się na pierwszym brakującym.";
+"commands · generators · sequences, when the search is empty" = "polecenia · generatory · sekwencje, gdy wyszukiwanie jest puste";
+"run the last command again" = "uruchom ponownie ostatnie polecenie";
+"Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Wpisz co najmniej 3 litery nazwy generatora, aby pojawił się na górze wyników. Palety pokazują najpierw najczęściej używane polecenia, działają też inicjały: wwl znajduje Wklej WIELKIMI LITERAMI.";
+"Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Uruchamiane są tylko wtyczki wymienione w activePlugins w config.json; domyślnie [\"calc.js\"].";
+"Paste as AI context" = "Wklej jako kontekst dla AI";
+"Paste without terminal colours" = "Wklej bez kolorów terminala";
+"Paste with secrets redacted" = "Wklej z ukrytymi sekretami";
+"≈ %@ tokens" = "≈ %@ tokenów";
