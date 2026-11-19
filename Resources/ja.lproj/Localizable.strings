@@ -238,7 +238,7 @@
 "Command “%@” failed for %@ of %@ items" = "コマンド「%1$@」は %3$@ 件中 %2$@ 件で失敗しました";
 "Invalid moveItemModifiers “%@” in config.json" = "config.json の moveItemModifiers「%@」は無効です";
 "Use modifiers like \"cmd\", \"alt\" or \"ctrl+alt\", or \"\" to turn moving items off." = "\"cmd\"、\"alt\"、\"ctrl+alt\" などの修飾キーを指定するか、\"\" で項目の移動をオフにしてください。";
-"move an item in History (pinned items: change their order)" = "履歴内で項目を移動（ピン留め項目は並び順を変更）";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "どのリストでも項目を移動（固定項目は並び順）、パレットではコマンドを移動：動かしたものは上に残ります";
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "選択した %2$@ 件の項目のコマンド %1$@ 件 — ↩ で各項目に実行 · %3$@ ジェネレータ · Esc で戻る";
 "Input: %@ selected items, each run separately" = "入力: 選択した %@ 件の項目（1 件ずつ実行）";
 "Could not save the sequence" = "シーケンスを保存できませんでした";
@@ -288,9 +288,8 @@
 "rotate only turns by multiples of 90 degrees." = "rotate は 90 度の倍数でのみ回転します。";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "検索（?? ヘルプ、%1$@ 項目コマンド、%2$@ ジェネレータ、%3$@ シーケンス）";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "選択した項目のコマンド: %1$@ または %2$@\nジェネレータ: %3$@ または %4$@\nシーケンス: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "シーケンス %1$@ 件 — ↩ で選択した %2$@ 件に実行 · Esc で戻る";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "シーケンスは %@ または右クリックメニューで実行します。選択した項目がシーケンスで使う数より少ない場合は、最初に足りない項目のところで止まります。";
-"commands · generators · sequences, when the search is empty" = "コマンド · ジェネレータ · シーケンス（検索欄が空のとき）";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "コマンド · ジェネレータ · シーケンス（カーソルが検索欄の末尾のとき。← は先頭のとき）";
 "run the last command again" = "最後のコマンドをもう一度実行";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "ジェネレータ名の文字を 3 文字以上入力すると、検索結果の一番上に表示されます。パレットではよく使うコマンドが先に並び、英語名の頭文字でも探せます: pu で Paste UPPERCASE が見つかります。";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "config.json の activePlugins に記載されたプラグインだけが実行されます。既定値は [\"calc.js\"] です。";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "ターミナルの色を除いてペースト";
 "Paste with secrets redacted" = "秘密情報を伏せてペースト";
 "≈ %@ tokens" = "≈ %@ トークン";
+"Couldn't find “%@” in commands.json." = "commands.json に「%@」が見つかりません。";
+"%@ copy" = "%@ のコピー";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "シーケンス %1$@ 件 — ↩ で選択した %2$@ 件に実行 · ⌘N 新規 · ⌘E 編集 · ⌘D 複製 · ⌘⌫ 削除 · Esc で戻る";
+"A command named “%@” already exists. Choose another name." = "「%@」という名前のコマンドはすでにあります。別の名前を選んでください。";
+"Duplicate Sequence" = "シーケンスを複製";
+"Edit Sequence" = "シーケンスを編集";
+"New Sequence" = "新規シーケンス";
+"New Sequence…" = "新規シーケンス…";
+"Could not delete the sequence" = "シーケンスを削除できませんでした";
+"Delete Sequence" = "シーケンスを削除";
+"Delete the sequence “%@”?" = "シーケンス「%@」を削除しますか？";
+"It is removed from commands.json." = "commands.json から削除されます。";
+"%@ global" = "%@ グローバル";

@@ -238,7 +238,7 @@
 "Command “%@” failed for %@ of %@ items" = "El comando “%1$@” falló en %2$@ de %3$@ elementos";
 "Invalid moveItemModifiers “%@” in config.json" = "moveItemModifiers “%@” no válido en config.json";
 "Use modifiers like \"cmd\", \"alt\" or \"ctrl+alt\", or \"\" to turn moving items off." = "Usa modificadores como \"cmd\", \"alt\" o \"ctrl+alt\", o \"\" para desactivar el desplazamiento de elementos.";
-"move an item in History (pinned items: change their order)" = "mover un elemento en el historial (fijados: cambiar su orden)";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "mover un elemento en cualquier lista (fijados: su orden) o un comando en una paleta: los movidos quedan arriba";
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "%1$@ comandos para %2$@ elementos seleccionados — ↩ ejecuta en cada uno · %3$@ generadores · Esc volver";
 "Input: %@ selected items, each run separately" = "Entrada: %@ elementos seleccionados, cada uno por separado";
 "Could not save the sequence" = "No se pudo guardar la secuencia";
@@ -288,9 +288,8 @@
 "rotate only turns by multiples of 90 degrees." = "rotate solo gira en múltiplos de 90 grados.";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Buscar (?? ayuda, %1$@ comandos, %2$@ generadores, %3$@ secuencias)";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Comandos para el elemento seleccionado: %1$@ o %2$@\nGeneradores: %3$@ o %4$@\nSecuencias: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ secuencias — ↩ se ejecuta con %2$@ elementos seleccionados · Esc volver";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Ejecuta las secuencias con %@ o desde el menú contextual. Si hay menos elementos seleccionados de los que usa la secuencia, se detiene en el primero que falta.";
-"commands · generators · sequences, when the search is empty" = "comandos · generadores · secuencias, con la búsqueda vacía";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "comandos · generadores · secuencias, con el cursor al final (← al principio) de la búsqueda";
 "run the last command again" = "repetir el último comando";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Escribe 3 o más letras del nombre de un generador para verlo arriba en los resultados. Las paletas muestran primero los comandos que más usas, y también sirven las iniciales: pem encuentra Pegar en MAYÚSCULAS.";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Solo se ejecutan los plugins listados en activePlugins de config.json; por defecto [\"calc.js\"].";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "Pegar sin colores de terminal";
 "Paste with secrets redacted" = "Pegar con los secretos ocultos";
 "≈ %@ tokens" = "≈ %@ tokens";
+"Couldn't find “%@” in commands.json." = "No se encontró «%@» en commands.json.";
+"%@ copy" = "%@ copia";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "%1$@ secuencias — ↩ se ejecuta con %2$@ elementos seleccionados · ⌘N nueva · ⌘E editar · ⌘D duplicar · ⌘⌫ eliminar · Esc volver";
+"A command named “%@” already exists. Choose another name." = "Ya existe un comando llamado «%@». Elige otro nombre.";
+"Duplicate Sequence" = "Duplicar secuencia";
+"Edit Sequence" = "Editar secuencia";
+"New Sequence" = "Nueva secuencia";
+"New Sequence…" = "Nueva secuencia…";
+"Could not delete the sequence" = "No se pudo eliminar la secuencia";
+"Delete Sequence" = "Eliminar secuencia";
+"Delete the sequence “%@”?" = "¿Eliminar la secuencia «%@»?";
+"It is removed from commands.json." = "Se quitará de commands.json.";
+"%@ global" = "%@ global";

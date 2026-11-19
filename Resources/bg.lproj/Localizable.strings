@@ -139,7 +139,7 @@
 "example" = "пример";
 "paste · paste as plain text (an image: the text in it)" = "постави · постави като обикновен текст (изображение: текста в него)";
 "paste row 1…9" = "постави ред 1…9";
-"move an item in History (pinned items: change their order)" = "премести елемент в историята (закачени: промени реда им)";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "преместване на елемент във всеки списък (закачените: подредбата им) или на команда в палитра: преместените остават най-горе";
 "typed quickly: paste the selected item as a code block" = "въведено бързо: постави избрания елемент като блок код";
 "select several; ↩ pastes them in the order selected" = "избери няколко; ↩ ги поставя в реда на избиране";
 "copy without pasting" = "копирай без поставяне";
@@ -288,9 +288,8 @@
 "until %@" = "до %@";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Търсене (?? помощ, %1$@ команди, %2$@ генератори, %3$@ последователности)";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Команди за избрания елемент: %1$@ или %2$@\nГенератори: %3$@ или %4$@\nПоследователности: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ последователности — ↩ се изпълнява с %2$@ избрани елемента · Esc обратно";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Изпълнявайте последователностите с %@ или от контекстното меню. Ако са избрани по-малко елементи, отколкото използва последователността, тя спира при първия липсващ.";
-"commands · generators · sequences, when the search is empty" = "команди · генератори · последователности, когато търсенето е празно";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "команди · генератори · последователности, когато курсорът е в края (← в началото) на търсенето";
 "run the last command again" = "изпълни отново последната команда";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Въведете поне 3 букви от името на генератор, за да се покаже най-горе в резултатите. Палитрите показват първо най-използваните команди, а работят и инициалите: псгб намира Постави с ГЛАВНИ БУКВИ.";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Изпълняват се само плъгините, изброени в activePlugins в config.json; по подразбиране [\"calc.js\"].";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "Постави без цветовете на терминала";
 "Paste with secrets redacted" = "Постави със скрити тайни";
 "≈ %@ tokens" = "≈ %@ токена";
+"Couldn't find “%@” in commands.json." = "„%@“ не е намерена в commands.json.";
+"%@ copy" = "%@ копие";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "%1$@ последователности — ↩ се изпълнява с %2$@ избрани елемента · ⌘N нова · ⌘E редактиране · ⌘D дублиране · ⌘⌫ изтриване · Esc обратно";
+"A command named “%@” already exists. Choose another name." = "Вече има команда с име „%@“. Изберете друго име.";
+"Duplicate Sequence" = "Дублирай последователността";
+"Edit Sequence" = "Редактирай последователността";
+"New Sequence" = "Нова последователност";
+"New Sequence…" = "Нова последователност…";
+"Could not delete the sequence" = "Последователността не можа да бъде изтрита";
+"Delete Sequence" = "Изтрий последователността";
+"Delete the sequence “%@”?" = "Да се изтрие ли последователността „%@“?";
+"It is removed from commands.json." = "Тя ще бъде премахната от commands.json.";
+"%@ global" = "%@ глобално";

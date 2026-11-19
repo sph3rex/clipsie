@@ -384,9 +384,28 @@ final class Store {
         }
     }
 
-    func move(_ id: Int64, below above: Int64?, above below: Int64?) {
+    func move(_ id: Int64, below above: Int64?, above below: Int64?, in tab: HistoryTab) {
         queue.sync {
             attempt {
+                if tab == .tagged {
+                    func taggedAt(_ item: Int64) throws -> Double? {
+                        var value: Double?
+                        try run("SELECT MAX(tagged_at) FROM item_tags WHERE item_id = ?", [.int(item)]) {
+                            if sqlite3_column_type($0, 0) != SQLITE_NULL { value = sqlite3_column_double($0, 0) }
+                        }
+                        return value
+                    }
+                    let upper = try above.flatMap(taggedAt), lower = try below.flatMap(taggedAt)
+                    let value: Double
+                    switch (upper, lower) {
+                    case let (upper?, lower?): value = (upper + lower) / 2
+                    case let (upper?, nil): value = upper - 0.001
+                    case let (nil, lower?): value = lower + 0.001
+                    case (nil, nil): return
+                    }
+                    try run("UPDATE item_tags SET tagged_at = ? WHERE item_id = ?", [.double(value), .int(id)])
+                    return
+                }
                 var pinned = false
                 try run("SELECT pinned FROM items WHERE id = ?", [.int(id)]) { pinned = sqlite3_column_int64($0, 0) != 0 }
                 if pinned {

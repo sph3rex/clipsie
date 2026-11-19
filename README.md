@@ -66,7 +66,7 @@ Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar i
 | <kbd>⌘</kbd><kbd>C</kbd> | copy without pasting |
 | <kbd>⇧</kbd><kbd>↑</kbd> <kbd>⇧</kbd><kbd>↓</kbd>, <kbd>⌘</kbd>-click | select several items; <kbd>↩</kbd> pastes their text together, in the order you picked them (images give their recognized text), and commands run on each of them |
 | <kbd>⌘</kbd><kbd>P</kbd> | pin to the top |
-| <kbd>⌘</kbd>-drag | move an item in History; for pinned items this sets their order (`moveItemModifiers`) |
+| <kbd>⌘</kbd>-drag | move an item in History, Images or Tagged (for pinned items this sets their order), or a command, generator or sequence in its palette: the ones you drag stay on top in your order, the rest stay ranked by use (`moveItemModifiers`) |
 | <kbd>⌘</kbd><kbd>I</kbd> / <kbd>⌘</kbd><kbd>L</kbd> | toggle the `important` tag / edit tags |
 | <kbd>⌘</kbd><kbd>E</kbd> | give the item a title |
 | <kbd>⌘</kbd><kbd>↩</kbd> | edit the item's text |
@@ -75,7 +75,7 @@ Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar i
 | <kbd>⇥</kbd> | switch between History, Images and Tagged |
 | <kbd>⌘</kbd><kbd>K</kbd> or `>` | commands for the selected item |
 | <kbd>⌘</kbd><kbd>⇧</kbd><kbd>E</kbd> or `>>` | generators (UUID, password, timestamp…) |
-| <kbd>→</kbd> / <kbd>←</kbd> | with an empty search: cycle commands → generators → sequences → back |
+| <kbd>→</kbd> / <kbd>←</kbd> | with the cursor at the end (← at the start) of the search: cycle commands → generators → sequences → back to your search |
 | <kbd>⌘</kbd><kbd>R</kbd> | run the last command again, on the selected items |
 | `` ``` `` typed quickly | paste the item as a Markdown code block |
 | `??` typed quickly | help: all keys, search filters and script examples |
@@ -145,7 +145,7 @@ Images are processed in memory and never written to disk; sides are limited to 1
 
 ## Sequences
 
-A sequence pastes several items one after another, with keys and pauses in between: handy for filling the same form again and again. Select the items in the order you want (<kbd>⌘</kbd>-click or <kbd>⇧</kbd><kbd>↓</kbd>), right-click and choose **Save as Sequence…**. Run it by typing `>>>` in the search field (or right-click → **Sequences**), with any selection. If fewer items are selected than the sequence uses, it stops at the first missing item: `item 1, tab, item 2, tab, item 3` with two items selected pastes both and stops before `item 3`.
+A sequence pastes several items one after another, with keys and pauses in between: handy for filling the same form again and again. Select the items in the order you want (<kbd>⌘</kbd>-click or <kbd>⇧</kbd><kbd>↓</kbd>), right-click and choose **Save as Sequence…**. Right-click → **Sequences** also has **New Sequence…** (a sequence can be just text and keys, like `"text1", tab, "text2", tab`), **Edit Sequence**, **Duplicate Sequence** and **Delete Sequence**; in the `>>>` palette the same is <kbd>⌘</kbd><kbd>N</kbd>, <kbd>⌘</kbd><kbd>E</kbd>, <kbd>⌘</kbd><kbd>D</kbd> and <kbd>⌘</kbd><kbd>⌫</kbd> on the selected sequence. Names must be unique. Run it by typing `>>>` in the search field (or right-click → **Sequences**), with any selection. If fewer items are selected than the sequence uses, it stops at the first missing item: `item 1, tab, item 2, tab, item 3` with two items selected pastes both and stops before `item 3`.
 
 ```json
 {"name": "Fill login form", "sequence": "item 1, tab, item 2, enter"}

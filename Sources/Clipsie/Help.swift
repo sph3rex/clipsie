@@ -19,12 +19,12 @@ enum Help {
                 .foregroundColor: NSColor.labelColor, .paragraphStyle: style,
             ]))
             result.append(NSAttributedString(string: L(description) + "\n", attributes: [
-                .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor, .paragraphStyle: style,
+                .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor, .paragraphStyle: style,
             ]))
         }
         func note(_ text: String) {
             result.append(NSAttributedString(string: L(text) + "\n", attributes: [
-                .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor,
+                .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor,
             ]))
         }
         func code(_ text: String) {
@@ -47,7 +47,7 @@ enum Help {
         heading("Keys")
         row("↩  ⇧↩", "paste · paste as plain text (an image: the text in it)")
         if let quickPaste { row("\(quickPaste)1 … \(quickPaste)9", "paste row 1…9") }
-        if let move { row("\(move)-drag", "move an item in History (pinned items: change their order)") }
+        if let move { row("\(move)-drag", "move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top") }
         row("``` or ~~~", "typed quickly: paste the selected item as a code block")
         row("⇧↑ ⇧↓  ⌘-click", "select several; ↩ pastes them in the order selected")
         row("⌘C", "copy without pasting")
@@ -61,7 +61,7 @@ enum Help {
         row("⇥  ⇧⇥", "History · Images · Tagged")
         row(commands, "commands for the selected item")
         row(generators, "generators (UUID, timestamp, password…)")
-        row("→  ←", "commands · generators · sequences, when the search is empty")
+        row("→  ←", "commands · generators · sequences, with the cursor at the end (← at the start) of the search")
         if let repeatCommand { row(repeatCommand, "run the last command again") }
         row("Esc", "clear the search, then close")
         note("Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE.")

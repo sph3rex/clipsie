@@ -238,7 +238,7 @@
 "Command “%@” failed for %@ of %@ items" = "命令“%1$@”在 %3$@ 个项目中有 %2$@ 个失败";
 "Invalid moveItemModifiers “%@” in config.json" = "config.json 中的 moveItemModifiers“%@”无效";
 "Use modifiers like \"cmd\", \"alt\" or \"ctrl+alt\", or \"\" to turn moving items off." = "请使用 \"cmd\"、\"alt\" 或 \"ctrl+alt\" 等修饰键，或用 \"\" 关闭项目移动。";
-"move an item in History (pinned items: change their order)" = "在历史记录中移动项目（置顶项目：更改其顺序）";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "在任意列表中移动项目（已固定项目：调整顺序），或在面板中移动命令：拖动过的会保持在顶部";
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "%2$@ 个所选项目有 %1$@ 个命令——↩ 逐个运行 · %3$@ 生成器 · Esc 返回";
 "Input: %@ selected items, each run separately" = "输入：%@ 个所选项目，逐个运行";
 "Could not save the sequence" = "无法存储序列";
@@ -288,9 +288,8 @@
 "rotate only turns by multiples of 90 degrees." = "rotate 只能按 90 度的倍数旋转。";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "搜索（?? 帮助，%1$@ 项目命令，%2$@ 生成器，%3$@ 序列）";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "所选项目的命令：%1$@ 或 %2$@\n生成器：%3$@ 或 %4$@\n序列：%5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ 个序列——↩ 以 %2$@ 个所选项目运行 · Esc 返回";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "用 %@ 或右键菜单运行序列。如果所选项目少于序列所用的数量，序列会在第一个缺少的项目处停止。";
-"commands · generators · sequences, when the search is empty" = "命令 · 生成器 · 序列（搜索为空时）";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "命令 · 生成器 · 序列（光标在搜索末尾时；← 在开头时）";
 "run the last command again" = "再次运行上一个命令";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "输入生成器名称中的 3 个或更多字母，它就会显示在搜索结果顶部。面板会优先列出你最常用的命令，也可以用英文首字母：pu 可找到 Paste UPPERCASE。";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "只有在 config.json 的 activePlugins 中列出的插件才会运行；默认为 [\"calc.js\"]。";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "去除终端颜色后粘贴";
 "Paste with secrets redacted" = "隐去密钥后粘贴";
 "≈ %@ tokens" = "≈ %@ 个 token";
+"Couldn't find “%@” in commands.json." = "在 commands.json 中找不到“%@”。";
+"%@ copy" = "%@ 副本";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "%1$@ 个序列——↩ 以 %2$@ 个所选项目运行 · ⌘N 新建 · ⌘E 编辑 · ⌘D 复制 · ⌘⌫ 删除 · Esc 返回";
+"A command named “%@” already exists. Choose another name." = "已存在名为“%@”的命令。请换一个名称。";
+"Duplicate Sequence" = "复制序列";
+"Edit Sequence" = "编辑序列";
+"New Sequence" = "新建序列";
+"New Sequence…" = "新建序列…";
+"Could not delete the sequence" = "无法删除序列";
+"Delete Sequence" = "删除序列";
+"Delete the sequence “%@”?" = "删除序列“%@”？";
+"It is removed from commands.json." = "它将从 commands.json 中移除。";
+"%@ global" = "%@ 全局";

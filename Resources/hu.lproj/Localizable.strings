@@ -139,7 +139,7 @@
 "example" = "példa";
 "paste · paste as plain text (an image: the text in it)" = "beillesztés · beillesztés egyszerű szövegként (képnél: a benne lévő szöveg)";
 "paste row 1…9" = "az 1…9. sor beillesztése";
-"move an item in History (pinned items: change their order)" = "elem mozgatása az előzményekben (rögzítettek: sorrendjük módosítása)";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "elem áthelyezése bármely listában (rögzítettek: sorrendjük), vagy parancsé egy palettán: az áthelyezettek felül maradnak";
 "typed quickly: paste the selected item as a code block" = "gyorsan beírva: a kijelölt elem beillesztése kódblokként";
 "select several; ↩ pastes them in the order selected" = "több kijelölése; az ↩ a kijelölés sorrendjében illeszti be őket";
 "copy without pasting" = "másolás beillesztés nélkül";
@@ -288,9 +288,8 @@
 "until %@" = "%@ -ig";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Keresés (?? súgó, %1$@ parancsok, %2$@ generátorok, %3$@ sorozatok)";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Parancsok a kijelölt elemhez: %1$@ vagy %2$@\nGenerátorok: %3$@ vagy %4$@\nSorozatok: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ sorozat — ↩ %2$@ kijelölt elemmel fut · Esc vissza";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "A sorozatokat a(z) %@ vagy a helyi menü indítja. Ha kevesebb elem van kijelölve, mint amennyit a sorozat használ, az első hiányzó elemnél megáll.";
-"commands · generators · sequences, when the search is empty" = "parancsok · generátorok · sorozatok, ha a keresés üres";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "parancsok · generátorok · sorozatok, ha a kurzor a keresés végén (← az elején) áll";
 "run the last command again" = "az utolsó parancs újbóli futtatása";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Írd be egy generátor nevének legalább 3 betűjét, és a találatok tetején jelenik meg. A palettákon a leggyakrabban használt parancsok állnak elöl, és a kezdőbetűk is működnek: bn megtalálja a Beillesztés NAGYBETŰVEL parancsot.";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Csak a config.json activePlugins listájában szereplő bővítmények futnak; alapértelmezés: [\"calc.js\"].";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "Beillesztés terminálszínek nélkül";
 "Paste with secrets redacted" = "Beillesztés kitakart titkokkal";
 "≈ %@ tokens" = "≈ %@ token";
+"Couldn't find “%@” in commands.json." = "„%@” nem található a commands.json fájlban.";
+"%@ copy" = "%@ másolat";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "%1$@ sorozat — ↩ %2$@ kijelölt elemmel fut · ⌘N új · ⌘E szerkesztés · ⌘D kettőzés · ⌘⌫ törlés · Esc vissza";
+"A command named “%@” already exists. Choose another name." = "Már létezik „%@” nevű parancs. Válassz másik nevet.";
+"Duplicate Sequence" = "Sorozat kettőzése";
+"Edit Sequence" = "Sorozat szerkesztése";
+"New Sequence" = "Új sorozat";
+"New Sequence…" = "Új sorozat…";
+"Could not delete the sequence" = "A sorozatot nem sikerült törölni";
+"Delete Sequence" = "Sorozat törlése";
+"Delete the sequence “%@”?" = "Törlöd a(z) „%@” sorozatot?";
+"It is removed from commands.json." = "Eltávolításra kerül a commands.json fájlból.";
+"%@ global" = "%@ globális";

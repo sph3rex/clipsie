@@ -139,7 +139,7 @@
 "example" = "przykład";
 "paste · paste as plain text (an image: the text in it)" = "wklej · wklej jako zwykły tekst (obraz: tekst z obrazu)";
 "paste row 1…9" = "wklej wiersz 1…9";
-"move an item in History (pinned items: change their order)" = "przesuń element w historii (przypięte: zmień ich kolejność)";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "przenieś element na dowolnej liście (przypięte: ich kolejność) lub polecenie w palecie: przeniesione zostają na górze";
 "typed quickly: paste the selected item as a code block" = "wpisane szybko: wklej zaznaczony element jako blok kodu";
 "select several; ↩ pastes them in the order selected" = "zaznacz kilka; ↩ wkleja je w kolejności zaznaczania";
 "copy without pasting" = "kopiuj bez wklejania";
@@ -288,9 +288,8 @@
 "until %@" = "do %@";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Szukaj (?? pomoc, %1$@ polecenia, %2$@ generatory, %3$@ sekwencje)";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Polecenia dla zaznaczonego elementu: %1$@ lub %2$@\nGeneratory: %3$@ lub %4$@\nSekwencje: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "Sekwencje: %1$@ — ↩ uruchamia na zaznaczonych elementach (%2$@) · Esc powrót";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Uruchamiaj sekwencje przez %@ lub menu kontekstowe. Jeśli zaznaczono mniej elementów, niż używa sekwencja, zatrzymuje się na pierwszym brakującym.";
-"commands · generators · sequences, when the search is empty" = "polecenia · generatory · sekwencje, gdy wyszukiwanie jest puste";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "polecenia · generatory · sekwencje, gdy kursor jest na końcu (← na początku) wyszukiwania";
 "run the last command again" = "uruchom ponownie ostatnie polecenie";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Wpisz co najmniej 3 litery nazwy generatora, aby pojawił się na górze wyników. Palety pokazują najpierw najczęściej używane polecenia, działają też inicjały: wwl znajduje Wklej WIELKIMI LITERAMI.";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Uruchamiane są tylko wtyczki wymienione w activePlugins w config.json; domyślnie [\"calc.js\"].";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "Wklej bez kolorów terminala";
 "Paste with secrets redacted" = "Wklej z ukrytymi sekretami";
 "≈ %@ tokens" = "≈ %@ tokenów";
+"Couldn't find “%@” in commands.json." = "Nie znaleziono „%@” w commands.json.";
+"%@ copy" = "%@ kopia";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "Sekwencje: %1$@ — ↩ uruchamia na zaznaczonych elementach (%2$@) · ⌘N nowa · ⌘E edytuj · ⌘D duplikuj · ⌘⌫ usuń · Esc powrót";
+"A command named “%@” already exists. Choose another name." = "Polecenie o nazwie „%@” już istnieje. Wybierz inną nazwę.";
+"Duplicate Sequence" = "Duplikuj sekwencję";
+"Edit Sequence" = "Edytuj sekwencję";
+"New Sequence" = "Nowa sekwencja";
+"New Sequence…" = "Nowa sekwencja…";
+"Could not delete the sequence" = "Nie udało się usunąć sekwencji";
+"Delete Sequence" = "Usuń sekwencję";
+"Delete the sequence “%@”?" = "Usunąć sekwencję „%@”?";
+"It is removed from commands.json." = "Zostanie usunięta z commands.json.";
+"%@ global" = "%@ globalnie";

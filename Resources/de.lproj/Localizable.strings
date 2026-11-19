@@ -238,7 +238,7 @@
 "Command “%@” failed for %@ of %@ items" = "Befehl „%1$@“ ist bei %2$@ von %3$@ Einträgen fehlgeschlagen";
 "Invalid moveItemModifiers “%@” in config.json" = "Ungültige moveItemModifiers „%@“ in config.json";
 "Use modifiers like \"cmd\", \"alt\" or \"ctrl+alt\", or \"\" to turn moving items off." = "Verwende Sondertasten wie \"cmd\", \"alt\" oder \"ctrl+alt\", oder \"\", um das Verschieben auszuschalten.";
-"move an item in History (pinned items: change their order)" = "einen Eintrag im Verlauf verschieben (angeheftete: ihre Reihenfolge ändern)";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "einen Eintrag in jeder Liste verschieben (angeheftete: ihre Reihenfolge) oder einen Befehl in einer Palette: verschobene bleiben oben";
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "%1$@ Befehle für %2$@ ausgewählte Einträge – ↩ führt auf jedem aus · %3$@ Generatoren · Esc zurück";
 "Input: %@ selected items, each run separately" = "Eingabe: %@ ausgewählte Einträge, jeder einzeln";
 "Could not save the sequence" = "Die Sequenz konnte nicht gesichert werden";
@@ -288,9 +288,8 @@
 "rotate only turns by multiples of 90 degrees." = "rotate dreht nur in Vielfachen von 90 Grad.";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Suchen (?? Hilfe, %1$@ Befehle, %2$@ Generatoren, %3$@ Sequenzen)";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Befehle für den gewählten Eintrag: %1$@ oder %2$@\nGeneratoren: %3$@ oder %4$@\nSequenzen: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ Sequenzen – ↩ läuft mit %2$@ ausgewählten Einträgen · Esc zurück";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Sequenzen startest du mit %@ oder über das Kontextmenü. Sind weniger Einträge ausgewählt, als die Sequenz verwendet, hält sie beim ersten fehlenden Eintrag an.";
-"commands · generators · sequences, when the search is empty" = "Befehle · Generatoren · Sequenzen, wenn die Suche leer ist";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "Befehle · Generatoren · Sequenzen, wenn der Cursor am Ende (← am Anfang) der Suche steht";
 "run the last command again" = "den letzten Befehl erneut ausführen";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Tippe 3 oder mehr Buchstaben eines Generatornamens, um ihn oben in den Suchergebnissen zu sehen. Die Paletten zeigen deine meistgenutzten Befehle zuerst, und Anfangsbuchstaben funktionieren auch: ige findet In GROSSBUCHSTABEN einfügen.";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Nur Plugins, die in activePlugins in config.json stehen, werden ausgeführt; Standard ist [\"calc.js\"].";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "Ohne Terminalfarben einfügen";
 "Paste with secrets redacted" = "Mit geschwärzten Geheimnissen einfügen";
 "≈ %@ tokens" = "≈ %@ Tokens";
+"Couldn't find “%@” in commands.json." = "„%@“ wurde in commands.json nicht gefunden.";
+"%@ copy" = "%@ Kopie";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "%1$@ Sequenzen – ↩ läuft mit %2$@ ausgewählten Einträgen · ⌘N neu · ⌘E bearbeiten · ⌘D duplizieren · ⌘⌫ löschen · Esc zurück";
+"A command named “%@” already exists. Choose another name." = "Ein Befehl namens „%@“ existiert bereits. Wähle einen anderen Namen.";
+"Duplicate Sequence" = "Sequenz duplizieren";
+"Edit Sequence" = "Sequenz bearbeiten";
+"New Sequence" = "Neue Sequenz";
+"New Sequence…" = "Neue Sequenz …";
+"Could not delete the sequence" = "Die Sequenz konnte nicht gelöscht werden";
+"Delete Sequence" = "Sequenz löschen";
+"Delete the sequence “%@”?" = "Die Sequenz „%@“ löschen?";
+"It is removed from commands.json." = "Sie wird aus commands.json entfernt.";
+"%@ global" = "%@ global";

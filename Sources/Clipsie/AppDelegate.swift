@@ -332,9 +332,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         }
     }
 
-    func addSequence(name: String, steps: String) {
+    func deleteSequence(named name: String) {
         do {
-            try UserCommand.appendSequence(name: name, steps: steps)
+            try UserCommand.deleteSequence(named: name)
+        } catch {
+            showError(L("Could not delete the sequence"), "\(error)")
+            return
+        }
+        reloadSettings()
+    }
+
+    func saveSequence(name: String, steps: String, replacing original: String?) {
+        do {
+            try UserCommand.saveSequence(name: name, steps: steps, replacing: original)
         } catch {
             showError(L("Could not save the sequence"), "\(error)")
             return

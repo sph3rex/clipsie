@@ -238,7 +238,7 @@
 "Command “%@” failed for %@ of %@ items" = "Comanda „%1$@” a eșuat pentru %2$@ din %3$@ elemente";
 "Invalid moveItemModifiers “%@” in config.json" = "moveItemModifiers „%@” nevalid în config.json";
 "Use modifiers like \"cmd\", \"alt\" or \"ctrl+alt\", or \"\" to turn moving items off." = "Folosește modificatori ca \"cmd\", \"alt\" sau \"ctrl+alt\", ori \"\" pentru a dezactiva mutarea elementelor.";
-"move an item in History (pinned items: change their order)" = "mută un element în istoric (cele fixate: schimbă-le ordinea)";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "mută un element în orice listă (fixate: ordinea lor) sau o comandă într-o paletă: cele mutate rămân sus";
 "%@ commands for %@ selected items — ↩ runs on each · %@ generators · Esc back" = "%1$@ comenzi pentru %2$@ elemente selectate — ↩ rulează pe fiecare · %3$@ generatoare · Esc înapoi";
 "Input: %@ selected items, each run separately" = "Intrare: %@ elemente selectate, fiecare separat";
 "Could not save the sequence" = "Secvența nu a putut fi salvată";
@@ -288,9 +288,8 @@
 "rotate only turns by multiples of 90 degrees." = "rotate rotește doar în multipli de 90 de grade.";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Caută (?? ajutor, %1$@ comenzi, %2$@ generatoare, %3$@ secvențe)";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Comenzi pentru elementul selectat: %1$@ sau %2$@\nGeneratoare: %3$@ sau %4$@\nSecvențe: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "%1$@ secvențe — ↩ rulează cu %2$@ elemente selectate · Esc înapoi";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Rulează secvențele cu %@ sau din meniul contextual. Dacă sunt selectate mai puține elemente decât folosește secvența, ea se oprește la primul element lipsă.";
-"commands · generators · sequences, when the search is empty" = "comenzi · generatoare · secvențe, când căutarea e goală";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "comenzi · generatoare · secvențe, cu cursorul la sfârșitul (← la începutul) căutării";
 "run the last command again" = "rulează din nou ultima comandă";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Tastează cel puțin 3 litere din numele unui generator ca să apară primul în rezultate. Paletele arată întâi comenzile folosite cel mai des și merg și inițialele: lcm găsește Lipește cu MAJUSCULE.";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Rulează doar pluginurile listate în activePlugins din config.json; implicit [\"calc.js\"].";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "Lipește fără culorile terminalului";
 "Paste with secrets redacted" = "Lipește cu secretele ascunse";
 "≈ %@ tokens" = "≈ %@ tokenuri";
+"Couldn't find “%@” in commands.json." = "„%@” nu a fost găsit în commands.json.";
+"%@ copy" = "%@ copie";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "%1$@ secvențe — ↩ rulează cu %2$@ elemente selectate · ⌘N nouă · ⌘E editează · ⌘D duplică · ⌘⌫ șterge · Esc înapoi";
+"A command named “%@” already exists. Choose another name." = "Există deja o comandă numită „%@”. Alege alt nume.";
+"Duplicate Sequence" = "Duplică secvența";
+"Edit Sequence" = "Editează secvența";
+"New Sequence" = "Secvență nouă";
+"New Sequence…" = "Secvență nouă…";
+"Could not delete the sequence" = "Secvența nu a putut fi ștearsă";
+"Delete Sequence" = "Șterge secvența";
+"Delete the sequence “%@”?" = "Ștergi secvența „%@”?";
+"It is removed from commands.json." = "Va fi eliminată din commands.json.";
+"%@ global" = "%@ global";

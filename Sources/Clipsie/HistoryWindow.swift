@@ -12,7 +12,8 @@ protocol HistoryActions: AnyObject {
     func pasteItems(_ ids: [Int64], target: NSRunningApplication?)
     func run(_ command: UserCommand, itemIDs: [Int64], target: NSRunningApplication?)
     func setSearchMode(_ mode: SearchMode)
-    func addSequence(name: String, steps: String)
+    func saveSequence(name: String, steps: String, replacing original: String?)
+    func deleteSequence(named name: String)
 }
 
 final class HistoryPanel: NSPanel {
@@ -103,7 +104,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private var paletteCommands: [UserCommand]?
     private var paletteItemIDs: [Int64] = []
     private var paletteSubjects: [CommandSubject] = []
-    private enum PaletteKind { case commands, generators, sequences }
+    private enum PaletteKind: String { case commands, generators, sequences }
     private var paletteKind = PaletteKind.commands
     private static let pageSize = 100
 
@@ -261,7 +262,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         tableView.delegate = self
         tableView.target = self
         tableView.doubleAction = #selector(tableDoubleClicked)
-        tableView.registerForDraggedTypes([Self.rowDragType])
+        tableView.registerForDraggedTypes([Self.rowDragType, Self.commandDragType])
         tableView.canDrag = { [weak self] in self?.isMoveGesture ?? false }
         tableView.setDraggingSourceOperationMask(.move, forLocal: true)
         tableView.draggingDestinationFeedbackStyle = .regular
@@ -466,7 +467,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             if paletteKind == .generators {
                 statusLabel.stringValue = L("%@ generators — ↩ run · Esc back to history", String(paletteCommands.count))
             } else if paletteKind == .sequences {
-                statusLabel.stringValue = L("%@ sequences — ↩ runs on %@ selected items · Esc back",
+                statusLabel.stringValue = L("%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back",
                                             String(paletteCommands.count), String(paletteItemIDs.count))
             } else if paletteItemIDs.isEmpty {
                 statusLabel.stringValue = L("No item selected — Esc and select one, or type %@ for generators", generatorsPrefix)
@@ -583,7 +584,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             let words = Self.words(command.displayName) + Self.words(command.name)
             return terms.allSatisfy { term in words.contains { $0.hasPrefix(term) } }
         }
-        return CommandUsage.ranked(matching).prefix(2).map {
+        return CommandUsage.arranged(matching, in: PaletteKind.generators.rawValue).prefix(2).map {
             PluginResult(plugin: "", value: "", title: $0.displayName, command: $0)
         }
     }
@@ -646,8 +647,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             showPalette(filter: mode.filter)
         } else if paletteCommands != nil {
             paletteCommands = nil
+            savedSearch = nil
             runSearch(selecting: paletteItemIDs.first, restoring: paletteItemIDs)
         } else {
+            savedSearch = nil
             perform(#selector(runPendingSearch), with: nil, afterDelay: 0.08)
         }
     }
@@ -692,7 +695,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func cyclePalette(forward: Bool) {
         let kinds: [PaletteKind?] = [nil, .commands, .generators] + (sequencesPrefix.isEmpty ? [] : [.sequences])
-        let index = kinds.firstIndex(of: paletteMode(searchField.stringValue)?.kind) ?? 0
+        let current = paletteMode(searchField.stringValue)?.kind
+        if current == nil { savedSearch = searchField.stringValue }
+        let index = kinds.firstIndex(of: current) ?? 0
         openPalette(kinds[(index + (forward ? 1 : kinds.count - 1)) % kinds.count])
     }
 
@@ -702,7 +707,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
 
     private func openPalette(_ kind: PaletteKind?) {
         switch kind {
-        case .none: searchField.stringValue = ""
+        case .none:
+            searchField.stringValue = savedSearch ?? ""
+            savedSearch = nil
         case .some(.commands): searchField.stringValue = commandsPrefix
         case .some(.generators): searchField.stringValue = generatorsPrefix
         case .some(.sequences): searchField.stringValue = sequencesPrefix
@@ -715,7 +722,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func showPalette(filter: String) {
         let terms = filter.lowercased().split(whereSeparator: \.isWhitespace)
         let typed = terms.joined()
-        let candidates = CommandUsage.ranked(commands.filter(isInPalette))
+        let candidates = CommandUsage.arranged(commands.filter(isInPalette), in: paletteKind.rawValue)
         let named = candidates.filter { command in
             terms.allSatisfy { (command.displayName + "\n" + command.name).lowercased().contains($0) }
         }
@@ -775,11 +782,11 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         updateSearchButtons()
         let content = NSMutableAttributedString(
             string: L("%@ items, pasted in the order you selected them. Images paste their recognized text; items without any text are skipped.", String(count)) + "\n\n",
-            attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.secondaryLabelColor])
+            attributes: [.font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor])
         for (index, text) in texts.enumerated() {
             let text = text ?? L("(no text — skipped)")
             content.append(NSAttributedString(string: "\(index + 1)\n", attributes: [
-                .font: NSFont.systemFont(ofSize: 10, weight: .semibold), .foregroundColor: NSColor.tertiaryLabelColor,
+                .font: NSFont.systemFont(ofSize: 11, weight: .bold), .foregroundColor: NSColor.labelColor,
             ]))
             content.append(NSAttributedString(string: String(text.prefix(5_000)) + "\n\n", attributes: [
                 .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular), .foregroundColor: NSColor.textColor,
@@ -841,7 +848,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
                 lines.append(String((subject.text ?? "").prefix(paletteSubjects.count > 1 ? 2_000 : 10_000)))
             }
         }
-        if let shortcut = command.localShortcut { lines.insert(L("Key: %@", shortcut.display), at: 2) }
+        if let keys = command.keysDisplay { lines.insert(L("Key: %@", keys), at: 2) }
         previewImage.image = nil
         previewImage.isHidden = true
         previewScroll.isHidden = false
@@ -868,10 +875,13 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     private static let rowDragType = NSPasteboard.PasteboardType("local.clipsie.row")
+    private static let commandDragType = NSPasteboard.PasteboardType("local.clipsie.command")
     private var droppedID: Int64?
+    private var droppedCommand: String?
+    private var savedSearch: String?
 
     private var canMoveItems: Bool {
-        tab == .history && paletteCommands == nil && !isShowingHelp && editingItemID == nil
+        !isShowingHelp && editingItemID == nil
     }
 
     private var isMoveGesture: Bool {
@@ -880,21 +890,39 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
 
     func tableView(_ tableView: NSTableView, pasteboardWriterForRow row: Int) -> NSPasteboardWriting? {
-        guard isMoveGesture, let index = idIndex(forRow: row) else { return nil }
+        guard isMoveGesture else { return nil }
         let item = NSPasteboardItem()
-        item.setString(String(ids[index]), forType: Self.rowDragType)
+        if let commands = paletteCommands {
+            guard row >= 0, row < commands.count else { return nil }
+            item.setString(commands[row].name, forType: Self.commandDragType)
+        } else {
+            guard let index = idIndex(forRow: row) else { return nil }
+            item.setString(String(ids[index]), forType: Self.rowDragType)
+        }
         return item
     }
 
     func tableView(_ tableView: NSTableView, validateDrop info: NSDraggingInfo, proposedRow row: Int,
                    proposedDropOperation dropOperation: NSTableView.DropOperation) -> NSDragOperation {
-        guard canMoveItems, info.draggingPasteboard.string(forType: Self.rowDragType) != nil else { return [] }
+        let type = paletteCommands == nil ? Self.rowDragType : Self.commandDragType
+        guard canMoveItems, info.draggingPasteboard.string(forType: type) != nil else { return [] }
         if dropOperation == .on { tableView.setDropRow(row, dropOperation: .above) }
         return .move
     }
 
     func tableView(_ tableView: NSTableView, acceptDrop info: NSDraggingInfo, row: Int,
                    dropOperation: NSTableView.DropOperation) -> Bool {
+        if let commands = paletteCommands {
+            guard canMoveItems, let name = info.draggingPasteboard.string(forType: Self.commandDragType),
+                  let from = commands.firstIndex(where: { $0.name == name }) else { return false }
+            var list = commands
+            let moved = list.remove(at: from)
+            let to = min(max(0, from < row ? row - 1 : row), list.count)
+            list.insert(moved, at: to)
+            CommandUsage.pin(list.prefix(to + 1).map(\.name), in: paletteKind.rawValue)
+            droppedCommand = name
+            return true
+        }
         guard canMoveItems, let string = info.draggingPasteboard.string(forType: Self.rowDragType),
               let id = Int64(string), let from = ids.firstIndex(of: id) else { return false }
         var list = ids
@@ -902,13 +930,18 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         var to = max(0, row - pluginResults.count)
         if from < to { to -= 1 }
         to = min(to, list.count)
-        store.move(id, below: to > 0 ? list[to - 1] : nil, above: to < list.count ? list[to] : nil)
+        store.move(id, below: to > 0 ? list[to - 1] : nil, above: to < list.count ? list[to] : nil, in: tab)
         droppedID = id
         return true
     }
 
     func tableView(_ tableView: NSTableView, draggingSession session: NSDraggingSession, endedAt screenPoint: NSPoint,
                    operation: NSDragOperation) {
+        if let name = droppedCommand {
+            droppedCommand = nil
+            searchTextChanged()
+            if let row = paletteCommands?.firstIndex(where: { $0.name == name }) { select(row) }
+        }
         guard let id = droppedID else { return }
         droppedID = nil
         runSearch(selecting: id)
@@ -1510,11 +1543,18 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
                 searchTextChanged()
             }
         case #selector(NSResponder.deleteToBeginningOfLine(_:)):
-            deleteSelected()
+            if paletteCommands != nil, paletteKind == .sequences {
+                let row = tableView.selectedRow
+                if let commands = paletteCommands, row >= 0, row < commands.count { confirmDeleteSequence(commands[row]) } else { NSSound.beep() }
+            } else {
+                deleteSelected()
+            }
         case #selector(NSResponder.moveRight(_:)), #selector(NSResponder.moveLeft(_:)):
-            let text = searchField.stringValue
-            guard text.isEmpty || paletteMode(text)?.filter.isEmpty == true else { return false }
-            cyclePalette(forward: selector == #selector(NSResponder.moveRight(_:)))
+            let forward = selector == #selector(NSResponder.moveRight(_:))
+            let range = textView.selectedRange()
+            let atEdge = range.length == 0 && range.location == (forward ? (textView.string as NSString).length : 0)
+            guard atEdge || paletteMode(searchField.stringValue)?.filter.isEmpty == true else { return false }
+            cyclePalette(forward: forward)
         case #selector(NSResponder.insertTab(_:)), #selector(NSResponder.insertBacktab(_:)):
             let index = Self.tabs.firstIndex(of: tab) ?? 0
             let step = selector == #selector(NSResponder.insertBacktab(_:)) ? Self.tabs.count - 1 : 1
@@ -1559,6 +1599,17 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             return true
         }
         guard modifiers == .command, let key = event.charactersIgnoringModifiers?.lowercased() else { return false }
+        if paletteCommands != nil, paletteKind == .sequences, ["n", "e", "d"].contains(key) {
+            let row = tableView.selectedRow
+            if key == "n" {
+                menuNewSequence()
+            } else if let commands = paletteCommands, row >= 0, row < commands.count {
+                editSequence(commands[row], duplicate: key == "d")
+            } else {
+                NSSound.beep()
+            }
+            return true
+        }
         switch key {
         case "c":
             let fieldSelection = searchField.currentEditor()?.selectedRange.length ?? 0
@@ -1678,12 +1729,25 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func addCommandItems(to menu: NSMenu, for ids: [Int64]) {
         let applicable = applicableCommands(for: ids)
         let sequences = commands.filter { $0.steps != nil }
-        guard !applicable.isEmpty || !sequences.isEmpty else { return }
         menu.addItem(.separator())
         for command in applicable { menu.addItem(commandMenuItem(command)) }
-        guard !sequences.isEmpty else { return }
         let submenu = NSMenu()
         for command in sequences { submenu.addItem(commandMenuItem(command)) }
+        if !sequences.isEmpty { submenu.addItem(.separator()) }
+        submenu.addItem(menuItem(L("New Sequence…"), #selector(menuNewSequence)))
+        for (title, action) in [(L("Edit Sequence"), #selector(menuEditSequence(_:))),
+                                (L("Duplicate Sequence"), #selector(menuDuplicateSequence(_:))),
+                                (L("Delete Sequence"), #selector(menuDeleteSequence(_:)))] where !sequences.isEmpty {
+            let list = NSMenu()
+            for command in sequences {
+                let entry = menuItem(command.displayName, action)
+                entry.representedObject = command.name
+                list.addItem(entry)
+            }
+            let parent = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            parent.submenu = list
+            submenu.addItem(parent)
+        }
         let item = NSMenuItem(title: L("Sequences"), action: nil, keyEquivalent: "")
         item.submenu = submenu
         menu.addItem(item)
@@ -1692,7 +1756,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func commandMenuItem(_ command: UserCommand) -> NSMenuItem {
         let item = menuItem(command.displayName, #selector(menuRunCommand(_:)))
         item.representedObject = command.name
-        if let shortcut = command.localShortcut { item.title += "   " + shortcut.display }
+        if let keys = command.keysDisplay { item.title += "   " + keys }
         return item
     }
 
@@ -1714,14 +1778,82 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     @objc private func menuEditTags() { editTagsSelected() }
 
     @objc private func menuSaveSequence() {
-        guard let window, selectionOrder.count > 1 else { return }
+        guard selectionOrder.count > 1 else { return }
+        showSequenceEditor(title: L("Save as Sequence"), name: "",
+                           steps: (1...selectionOrder.count).map { "item \($0)" }.joined(separator: ", tab, "))
+    }
+
+    @objc private func menuNewSequence() {
+        showSequenceEditor(title: L("New Sequence"), name: "", steps: "\"text\", tab, item 1, enter")
+    }
+
+    @objc private func menuEditSequence(_ sender: NSMenuItem) {
+        guard let name = sender.representedObject as? String, let command = commands.first(where: { $0.name == name }) else { return }
+        editSequence(command, duplicate: false)
+    }
+
+    @objc private func menuDuplicateSequence(_ sender: NSMenuItem) {
+        guard let name = sender.representedObject as? String, let command = commands.first(where: { $0.name == name }) else { return }
+        editSequence(command, duplicate: true)
+    }
+
+    @objc private func menuDeleteSequence(_ sender: NSMenuItem) {
+        guard let name = sender.representedObject as? String, let command = commands.first(where: { $0.name == name }) else { return }
+        confirmDeleteSequence(command)
+    }
+
+    private func confirmDeleteSequence(_ command: UserCommand) {
+        guard let window, command.steps != nil else { return }
         let alert = NSAlert()
-        alert.messageText = L("Save as Sequence")
-        alert.informativeText = L("A sequence pastes the selected items one after another, with keys and pauses in between. item 1…n are the items selected when you run it, in the order you selected them. Steps: item 1, \"text\", wait 200 (ms), or a key like tab, enter, shift+tab or cmd+a.")
+        alert.messageText = L("Delete the sequence “%@”?", command.displayName)
+        alert.informativeText = L("It is removed from commands.json.")
+        alert.addButton(withTitle: L("Delete Sequence"))
+        alert.addButton(withTitle: L("Cancel"))
+        alert.buttons[0].hasDestructiveAction = true
+        isShowingSheet = true
+        alert.beginSheetModal(for: window) { [weak self] response in
+            guard let self else { return }
+            self.isShowingSheet = false
+            window.makeKeyAndOrderFront(nil)
+            window.makeFirstResponder(self.searchField)
+            guard response == .alertFirstButtonReturn else { return }
+            self.actions?.deleteSequence(named: command.name)
+            if self.paletteCommands != nil { self.searchTextChanged() }
+        }
+    }
+
+    private func editSequence(_ command: UserCommand, duplicate: Bool) {
+        guard let sequence = command.sequence else { return }
+        if duplicate {
+            showSequenceEditor(title: L("Duplicate Sequence"), name: L("%@ copy", command.name), steps: sequence)
+        } else {
+            showSequenceEditor(title: L("Edit Sequence"), name: command.name, steps: sequence, replacing: command.name)
+        }
+    }
+
+    private func sequenceProblem(name: String, steps: String, replacing original: String?) -> String? {
+        do {
+            _ = try SequenceStep.parse(steps)
+        } catch {
+            return "\(error)"
+        }
+        if name != original, commands.contains(where: { $0.name == name }) {
+            return L("A command named “%@” already exists. Choose another name.", name)
+        }
+        return nil
+    }
+
+    private func showSequenceEditor(title: String, name initialName: String, steps initialSteps: String,
+                                    replacing original: String? = nil, problem: String? = nil) {
+        guard let window else { return }
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = problem ?? L("A sequence pastes the selected items one after another, with keys and pauses in between. item 1…n are the items selected when you run it, in the order you selected them. Steps: item 1, \"text\", wait 200 (ms), or a key like tab, enter, shift+tab or cmd+a.")
         let name = NSTextField(frame: NSRect(x: 0, y: 34, width: 380, height: 24))
         name.placeholderString = L("Name, e.g. Fill login form")
+        name.stringValue = initialName
         let steps = NSTextField(frame: NSRect(x: 0, y: 0, width: 380, height: 24))
-        steps.stringValue = (1...selectionOrder.count).map { "item \($0)" }.joined(separator: ", tab, ")
+        steps.stringValue = initialSteps
         let fields = NSView(frame: NSRect(x: 0, y: 0, width: 380, height: 58))
         fields.addSubview(name)
         fields.addSubview(steps)
@@ -1736,9 +1868,14 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             self.isShowingSheet = false
             window.makeKeyAndOrderFront(nil)
             window.makeFirstResponder(self.searchField)
-            let title = name.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard response == .alertFirstButtonReturn, !title.isEmpty else { return }
-            self.actions?.addSequence(name: title, steps: steps.stringValue)
+            let newName = name.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard response == .alertFirstButtonReturn, !newName.isEmpty else { return }
+            if let problem = self.sequenceProblem(name: newName, steps: steps.stringValue, replacing: original) {
+                self.showSequenceEditor(title: title, name: newName, steps: steps.stringValue, replacing: original, problem: problem)
+                return
+            }
+            self.actions?.saveSequence(name: newName, steps: steps.stringValue, replacing: original)
+            if self.paletteCommands != nil { self.searchTextChanged() }
         }
     }
 
@@ -1948,7 +2085,7 @@ final class ItemCellView: NSTableCellView {
         marksLabel.stringValue = command.usesShell ? "⚠︎" : ""
         toolTip = command.usesShell ? L("Shell command: not sandboxed") : nil
         titleLabel.stringValue = command.displayName
-        detailLabel.stringValue = command.localShortcut?.display ?? command.output.rawValue
+        detailLabel.stringValue = command.keysDisplay ?? command.output.rawValue
     }
 
     private static func icon(for item: ItemRow) -> NSImage? {

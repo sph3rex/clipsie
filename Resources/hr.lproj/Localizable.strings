@@ -139,7 +139,7 @@
 "example" = "primjer";
 "paste · paste as plain text (an image: the text in it)" = "zalijepi · zalijepi kao običan tekst (slika: tekst u njoj)";
 "paste row 1…9" = "zalijepi redak 1…9";
-"move an item in History (pinned items: change their order)" = "premjesti stavku u povijesti (prikvačene: promijeni im redoslijed)";
+"move an item in any list (pinned items: their order), or a command in a palette: dragged ones stay on top" = "premjesti stavku na bilo kojem popisu (prikvačene: njihov redoslijed) ili naredbu u paleti: premještene ostaju na vrhu";
 "typed quickly: paste the selected item as a code block" = "brzo upisano: zalijepi odabranu stavku kao blok koda";
 "select several; ↩ pastes them in the order selected" = "odaberi više; ↩ ih lijepi redoslijedom odabira";
 "copy without pasting" = "kopiraj bez lijepljenja";
@@ -288,9 +288,8 @@
 "until %@" = "do %@";
 "Search (?? help, %@ item commands, %@ generators, %@ sequences)" = "Pretraži (?? pomoć, %1$@ naredbe, %2$@ generatori, %3$@ slijedovi)";
 "Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@" = "Naredbe za odabranu stavku: %1$@ ili %2$@\nGeneratori: %3$@ ili %4$@\nSlijedovi: %5$@";
-"%@ sequences — ↩ runs on %@ selected items · Esc back" = "Slijedova: %1$@ — ↩ izvodi se s odabranim stavkama (%2$@) · Esc natrag";
 "Run sequences with %@ or the right-click menu. With fewer items selected than a sequence uses, it stops at the first missing item." = "Slijedove pokrenite s %@ ili iz kontekstnog izbornika. Ako je odabrano manje stavki nego što slijed koristi, zaustavlja se na prvoj stavci koja nedostaje.";
-"commands · generators · sequences, when the search is empty" = "naredbe · generatori · slijedovi, kad je pretraga prazna";
+"commands · generators · sequences, with the cursor at the end (← at the start) of the search" = "naredbe · generatori · slijedovi, kad je kursor na kraju (← na početku) pretrage";
 "run the last command again" = "ponovno pokreni posljednju naredbu";
 "Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE." = "Upišite barem 3 slova naziva generatora da se pojavi na vrhu rezultata. Palete prvo prikazuju najčešće korištene naredbe, a rade i inicijali: zvs pronalazi Zalijepi VELIKIM SLOVIMA.";
 "Only plugins listed in activePlugins in config.json run; the default is [\"calc.js\"]." = "Pokreću se samo dodaci navedeni u activePlugins u config.json; zadano [\"calc.js\"].";
@@ -298,3 +297,16 @@
 "Paste without terminal colours" = "Zalijepi bez boja terminala";
 "Paste with secrets redacted" = "Zalijepi sa skrivenim tajnama";
 "≈ %@ tokens" = "≈ %@ tokena";
+"Couldn't find “%@” in commands.json." = "„%@” nije pronađen u commands.json.";
+"%@ copy" = "%@ kopija";
+"%@ sequences — ↩ runs on %@ selected items · ⌘N new · ⌘E edit · ⌘D duplicate · ⌘⌫ delete · Esc back" = "Slijedova: %1$@ — ↩ izvodi se s odabranim stavkama (%2$@) · ⌘N novi · ⌘E uredi · ⌘D dupliciraj · ⌘⌫ izbriši · Esc natrag";
+"A command named “%@” already exists. Choose another name." = "Naredba s nazivom „%@” već postoji. Odaberite drugi naziv.";
+"Duplicate Sequence" = "Dupliciraj slijed";
+"Edit Sequence" = "Uredi slijed";
+"New Sequence" = "Novi slijed";
+"New Sequence…" = "Novi slijed…";
+"Could not delete the sequence" = "Slijed nije moguće izbrisati";
+"Delete Sequence" = "Izbriši slijed";
+"Delete the sequence “%@”?" = "Izbrisati slijed „%@”?";
+"It is removed from commands.json." = "Uklonit će se iz commands.json.";
+"%@ global" = "%@ globalno";

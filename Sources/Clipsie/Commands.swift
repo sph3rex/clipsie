@@ -168,6 +168,11 @@ struct UserCommand: Decodable {
 
     var localShortcut: Shortcut? { shortcut.flatMap(Shortcut.init) }
 
+    var keysDisplay: String? {
+        let keys = [localShortcut?.display, globalShortcut.flatMap(Shortcut.init).map { L("%@ global", $0.display) }].compactMap { $0 }
+        return keys.isEmpty ? nil : keys.joined(separator: " · ")
+    }
+
     var displayName: String { L(name) }
 
     enum Engine {
@@ -205,19 +210,94 @@ struct UserCommand: Decodable {
         return regex.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
     }
 
-    static func appendSequence(name: String, steps: String) throws {
+    static func saveSequence(name: String, steps: String, replacing original: String?) throws {
         _ = try SequenceStep.parse(steps)
         let entry: [String: Any] = ["name": name, "sequence": steps]
-        let json = String(decoding: try JSONSerialization.data(withJSONObject: entry, options: [.sortedKeys, .withoutEscapingSlashes]),
-                          as: UTF8.self)
+        func json(_ object: [String: Any]) throws -> String {
+            String(decoding: try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes]),
+                   as: UTF8.self)
+        }
         let text = try String(contentsOf: AppPaths.commands, encoding: .utf8)
-        guard let end = text.lastIndex(of: "]") else { throw ScriptError(message: L("commands.json isn't a JSON list.")) }
-        let before = text[..<end].trimmingCharacters(in: .whitespacesAndNewlines)
-        let updated = before + (before.hasSuffix("[") ? "\n  " : ",\n  ") + json + "\n" + text[end...]
+        let updated: String
+        if let original {
+            guard let range = sequenceRange(named: original, in: text) else {
+                throw ScriptError(message: L("Couldn't find “%@” in commands.json.", original))
+            }
+            let existing = (try? JSONSerialization.jsonObject(with: Data(text[range].utf8))) as? [String: Any] ?? [:]
+            updated = text.replacingCharacters(in: range, with: try json(existing.merging(entry) { $1 }))
+        } else {
+            let line = try json(entry)
+            guard let end = text.lastIndex(of: "]") else { throw ScriptError(message: L("commands.json isn't a JSON list.")) }
+            let before = text[..<end].trimmingCharacters(in: .whitespacesAndNewlines)
+            updated = before + (before.hasSuffix("[") ? "\n  " : ",\n  ") + line + "\n" + text[end...]
+        }
         guard (try? JSONSerialization.jsonObject(with: Data(updated.utf8))) is [Any] else {
             throw ScriptError(message: L("commands.json isn't a JSON list."))
         }
         try Data(updated.utf8).write(to: AppPaths.commands, options: .atomic)
+    }
+
+    static func deleteSequence(named name: String) throws {
+        let text = try String(contentsOf: AppPaths.commands, encoding: .utf8)
+        guard let range = sequenceRange(named: name, in: text) else {
+            throw ScriptError(message: L("Couldn't find “%@” in commands.json.", name))
+        }
+        var lower = range.lowerBound
+        var upper = range.upperBound
+        if let next = text[upper...].firstIndex(where: { !$0.isWhitespace }), text[next] == "," {
+            upper = text.index(after: next)
+        } else if let previous = text[..<lower].lastIndex(where: { !$0.isWhitespace }), text[previous] == "," {
+            lower = previous
+        }
+        while lower > text.startIndex, " \t".contains(text[text.index(before: lower)]) { lower = text.index(before: lower) }
+        while upper < text.endIndex, " \t".contains(text[upper]) { upper = text.index(after: upper) }
+        if lower == text.startIndex || text[text.index(before: lower)] == "\n", upper < text.endIndex, text[upper] == "\n" {
+            upper = text.index(after: upper)
+        }
+        let updated = text.replacingCharacters(in: lower..<upper, with: "")
+        guard (try? JSONSerialization.jsonObject(with: Data(updated.utf8))) is [Any] else {
+            throw ScriptError(message: L("commands.json isn't a JSON list."))
+        }
+        try Data(updated.utf8).write(to: AppPaths.commands, options: .atomic)
+    }
+
+    private static func sequenceRange(named name: String, in text: String) -> Range<String.Index>? {
+        var depth = 0
+        var inString = false
+        var escaped = false
+        var start: String.Index?
+        for index in text.indices {
+            let character = text[index]
+            if inString {
+                if escaped {
+                    escaped = false
+                } else if character == "\\" {
+                    escaped = true
+                } else if character == "\"" {
+                    inString = false
+                }
+                continue
+            }
+            switch character {
+            case "\"":
+                inString = true
+            case "{", "[":
+                if depth == 1, character == "{" { start = index }
+                depth += 1
+            case "}", "]":
+                depth -= 1
+                guard depth == 1, character == "}", let begin = start else { continue }
+                start = nil
+                let range = begin..<text.index(after: index)
+                if let object = try? JSONSerialization.jsonObject(with: Data(text[range].utf8)) as? [String: Any],
+                   object["name"] as? String == name, object["sequence"] != nil {
+                    return range
+                }
+            default:
+                break
+            }
+        }
+        return nil
     }
 
     static func load() throws -> (commands: [UserCommand], skipped: [String]) {
@@ -377,5 +457,21 @@ enum CommandUsage {
             return entry[0] * pow(0.5, max(0, now - entry[1]) / (7 * 86_400))
         }
         return commands.indices.sorted { (scores[$0], -$0) > (scores[$1], -$1) }.map { commands[$0] }
+    }
+
+    static func pin(_ names: [String], in palette: String) {
+        let rest = pinned(palette).filter { !names.contains($0) }
+        UserDefaults.standard.set(names + rest, forKey: "commandOrder." + palette)
+    }
+
+    static func arranged(_ commands: [UserCommand], in palette: String) -> [UserCommand] {
+        var position: [String: Int] = [:]
+        for (index, name) in pinned(palette).enumerated() where position[name] == nil { position[name] = index }
+        let top = commands.filter { position[$0.name] != nil }.sorted { position[$0.name]! < position[$1.name]! }
+        return top + ranked(commands.filter { position[$0.name] == nil })
+    }
+
+    private static func pinned(_ palette: String) -> [String] {
+        UserDefaults.standard.stringArray(forKey: "commandOrder." + palette) ?? []
     }
 }
