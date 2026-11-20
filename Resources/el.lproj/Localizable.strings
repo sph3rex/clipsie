@@ -310,3 +310,7 @@
 "Delete the sequence “%@”?" = "Διαγραφή της ακολουθίας «%@»;";
 "It is removed from commands.json." = "Θα αφαιρεθεί από το commands.json.";
 "%@ global" = "%@ καθολικά";
+"“%@” failed, so nothing was pasted" = "Η «%@» απέτυχε, οπότε δεν επικολλήθηκε τίποτα";
+"On for every paste — click to turn off" = "Ενεργό σε κάθε επικόλληση — κάντε κλικ για απενεργοποίηση";
+"⌥↩ keep on for every paste" = "⌥↩ να μένει ενεργό σε κάθε επικόλληση";
+"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "στην παλέτα εντολών: μια εντολή μένει ενεργή σε κάθε επικόλληση, με ετικέτα πάνω από τη λίστα· κλικ στην ετικέτα την απενεργοποιεί";

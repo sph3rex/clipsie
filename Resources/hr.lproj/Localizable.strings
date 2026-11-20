@@ -310,3 +310,7 @@
 "Delete the sequence “%@”?" = "Izbrisati slijed „%@”?";
 "It is removed from commands.json." = "Uklonit će se iz commands.json.";
 "%@ global" = "%@ globalno";
+"“%@” failed, so nothing was pasted" = "„%@” nije uspio, pa ništa nije zalijepljeno";
+"On for every paste — click to turn off" = "Uključeno za svako lijepljenje — kliknite za isključivanje";
+"⌥↩ keep on for every paste" = "⌥↩ ostavi uključeno za svako lijepljenje";
+"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "u paleti naredbi: ostavi naredbu uključenom za svako lijepljenje, prikazanu kao oznaku iznad popisa; klik na oznaku je isključuje";

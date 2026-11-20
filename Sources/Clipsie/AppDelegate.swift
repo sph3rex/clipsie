@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
 
     private var config = Config()
     private var commands: [UserCommand] = []
+    private var activeTransforms: [UserCommand] = []
     private var store: Store!
     private let monitor = ClipboardMonitor()
     private let paster = Paster()
@@ -97,6 +98,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             showError(L("commands.json is invalid — no commands loaded"), "\(error)")
             commands = []
         }
+        ScriptEngine.redactions = config.redact.map { rule in
+            var entry = ["match": rule.match]
+            entry["with"] = rule.with
+            return entry
+        }
         ScriptEngine.commands.reset()
         ScriptEngine.plugins.reset()
         monitor.maxItemBytes = config.maxItemBytes
@@ -112,6 +118,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             return shortcut
         }
         history.commands = commands.filter { $0.type == .menu }
+        activeTransforms = activeTransforms.compactMap { old in commands.first { $0.name == old.name } }
+        history.activeTransforms = activeTransforms.map(\.name)
         history.showsPreview = config.showPreview
         history.linkPreviews = config.linkPreviews
         history.searchMode = config.searchMode
@@ -250,9 +258,54 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         if config.clearHistoryOnQuit { store?.clearEverything(keepingTags: config.keepTagsOnQuit) }
     }
 
+    func toggleTransform(_ command: UserCommand) {
+        if let index = activeTransforms.firstIndex(where: { $0.name == command.name }) {
+            activeTransforms.remove(at: index)
+        } else {
+            activeTransforms.append(command)
+        }
+        history.activeTransforms = activeTransforms.map(\.name)
+    }
+
+    private func runTransforms(_ remaining: ArraySlice<UserCommand>, text: String, itemID: Int64,
+                               reps: [Representation], completion: @escaping (String?) -> Void) {
+        guard let command = remaining.first else {
+            completion(text)
+            return
+        }
+        let sourceApp = store.rows(ids: [itemID]).first?.sourceApp
+        guard command.applies(to: CommandSubject(reps), sourceApp: sourceApp) else {
+            runTransforms(remaining.dropFirst(), text: text, itemID: itemID, reps: reps, completion: completion)
+            return
+        }
+        let started = execute(command, input: text, itemID: itemID, sourceApp: sourceApp, reps: reps) { [weak self] result in
+            guard let self else { return }
+            guard result.status == 0, result.image == nil, !result.output.isEmpty else {
+                self.showError(L("“%@” failed, so nothing was pasted", command.displayName),
+                               result.error.isEmpty ? result.output : result.error)
+                completion(nil)
+                return
+            }
+            self.runTransforms(remaining.dropFirst(), text: Self.trimmed(result.output, input: text), itemID: itemID,
+                               reps: reps, completion: completion)
+        }
+        if !started { completion(nil) }
+    }
+
     func paste(itemID: Int64, plainText: Bool, target: NSRunningApplication?) {
         let reps = store.representations(for: itemID)
         let plain = plainText || (wantsPlainText(target) && Content.isFormattedText(reps))
+        if !activeTransforms.isEmpty, let text = Content.text(reps) ?? (plainText ? store.ocrText(for: itemID) : nil) {
+            runTransforms(activeTransforms[...], text: text, itemID: itemID, reps: reps) { [weak self] output in
+                guard let self, let output, self.paster.write(text: output) else {
+                    NSSound.beep()
+                    return
+                }
+                self.store.touch(itemID)
+                self.deliverPaste(to: target)
+            }
+            return
+        }
         if plainText, Content.text(reps) == nil, let recognized = store.ocrText(for: itemID) {
             guard paster.write(text: recognized) else {
                 NSSound.beep()
@@ -285,12 +338,33 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     }
 
     func pasteItems(_ ids: [Int64], target: NSRunningApplication?) {
-        let texts = ids.compactMap { Content.text(store.representations(for: $0)) ?? store.ocrText(for: $0) }
-        guard !texts.isEmpty, paster.write(text: texts.joined(separator: config.multiPasteSeparator)) else {
-            NSSound.beep()
+        let items = ids.compactMap { id -> (id: Int64, text: String, reps: [Representation])? in
+            let reps = store.representations(for: id)
+            return (Content.text(reps) ?? store.ocrText(for: id)).map { (id: id, text: $0, reps: reps) }
+        }
+        transformEach(items[...], done: []) { [weak self] texts in
+            guard let self, let texts, !texts.isEmpty,
+                  self.paster.write(text: texts.joined(separator: self.config.multiPasteSeparator)) else {
+                NSSound.beep()
+                return
+            }
+            self.deliverPaste(to: target)
+        }
+    }
+
+    private func transformEach(_ remaining: ArraySlice<(id: Int64, text: String, reps: [Representation])>, done: [String],
+                               completion: @escaping ([String]?) -> Void) {
+        guard let item = remaining.first else {
+            completion(done)
             return
         }
-        deliverPaste(to: target)
+        runTransforms(activeTransforms[...], text: item.text, itemID: item.id, reps: item.reps) { [weak self] output in
+            guard let self, let output else {
+                completion(nil)
+                return
+            }
+            self.transformEach(remaining.dropFirst(), done: done + [output], completion: completion)
+        }
     }
 
     func copyText(_ text: String) {
@@ -436,7 +510,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
                     NSSound.beep()
                     return
                 }
-                for result in images { save(Capture(representations: [result.image], sourceApp: nil)) }
+                if command.saveOutput {
+                    for result in images { save(Capture(representations: [result.image], sourceApp: nil)) }
+                }
                 if command.output == .paste { deliverPaste(to: target) }
             case .newItem:
                 for result in images { save(Capture(representations: [result.image], sourceApp: nil)) }
@@ -461,7 +537,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
                 NSSound.beep()
                 return
             }
-            save(Capture(text: joined, sourceApp: nil))
+            if command.saveOutput { save(Capture(text: joined, sourceApp: nil)) }
             if command.output == .paste { deliverPaste(to: target) }
         case .newItem:
             for result in results { save(Capture(text: result.output, sourceApp: nil)) }
@@ -565,7 +641,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
                 break
             case .paste, .copy:
                 guard paster.write([image], plainTextOnly: false) else { return }
-                save(capture)
+                if command.saveOutput { save(capture) }
                 if command.output == .paste { deliverPaste(to: target) }
             case .newItem:
                 save(capture)
@@ -590,11 +666,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             break
         case .paste:
             guard paster.write(text: output) else { return }
-            save(Capture(text: output, sourceApp: nil))
+            if command.saveOutput { save(Capture(text: output, sourceApp: nil)) }
             deliverPaste(to: target)
         case .copy:
             guard paster.write(text: output) else { return }
-            save(Capture(text: output, sourceApp: nil))
+            if command.saveOutput { save(Capture(text: output, sourceApp: nil)) }
         case .newItem:
             save(Capture(text: output, sourceApp: nil))
         case .replace:

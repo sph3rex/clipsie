@@ -14,6 +14,7 @@ protocol HistoryActions: AnyObject {
     func setSearchMode(_ mode: SearchMode)
     func saveSequence(name: String, steps: String, replacing original: String?)
     func deleteSequence(named name: String)
+    func toggleTransform(_ command: UserCommand)
 }
 
 final class HistoryPanel: NSPanel {
@@ -44,6 +45,13 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     var commandsShortcut = Shortcut("cmd+k") { didSet { updatePaletteHelp() } }
     var generatorsShortcut = Shortcut("cmd+shift+e") { didSet { updatePaletteHelp() } }
     var repeatCommandShortcut = Shortcut("cmd+r")
+    var activeTransforms: [String] = [] {
+        didSet {
+            if paletteCommands != nil { tableView.reloadData() }
+            rebuildActiveBar()
+            updateStatus()
+        }
+    }
     var searchProviders: [SearchProvider] = [] {
         didSet { rebuildSearchButtons() }
     }
@@ -73,6 +81,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private let previewHeader = NSView()
     private let previewHeaderLabel = NSTextField(labelWithString: "")
     private let tagBar = NSStackView()
+    private let activeBar = FlowView()
     private var tagBarHeight: NSLayoutConstraint!
     private var tagBarNames: [String] = []
     private var isShowingHelp = false
@@ -353,8 +362,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         statusLabel.textColor = .tertiaryLabelColor
         statusLabel.font = .systemFont(ofSize: 11)
         statusLabel.lineBreakMode = .byTruncatingTail
+        statusLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        let views: [NSView] = [searchIcon, searchField, paletteButton, topSeparator, tabControl, split,
+        let views: [NSView] = [searchIcon, searchField, paletteButton, topSeparator, tabControl, activeBar, split,
                                bottomSeparator, statusLabel]
         for view in views {
             view.translatesAutoresizingMaskIntoConstraints = false
@@ -376,7 +386,10 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             topSeparator.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             tabControl.topAnchor.constraint(equalTo: topSeparator.bottomAnchor, constant: 8),
             tabControl.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
-            split.topAnchor.constraint(equalTo: tabControl.bottomAnchor, constant: 4),
+            activeBar.topAnchor.constraint(equalTo: tabControl.bottomAnchor, constant: 4),
+            activeBar.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
+            activeBar.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
+            split.topAnchor.constraint(equalTo: activeBar.bottomAnchor),
             split.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             split.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             split.bottomAnchor.constraint(equalTo: bottomSeparator.topAnchor),
@@ -387,6 +400,31 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             statusLabel.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
             statusLabel.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -8),
         ])
+    }
+
+    private func rebuildActiveBar() {
+        activeBar.subviews.forEach { $0.removeFromSuperview() }
+        for name in activeTransforms {
+            guard let command = commands.first(where: { $0.name == name }) else { continue }
+            let pill = PillButton(title: "", target: self, action: #selector(turnOffTransform(_:)))
+            pill.isBordered = false
+            pill.wantsLayer = true
+            pill.layer?.cornerRadius = 9
+            pill.layer?.backgroundColor = NSColor.controlAccentColor.cgColor
+            pill.attributedTitle = NSAttributedString(string: "  ● " + command.displayName + "  ✕  ", attributes: [
+                .font: NSFont.systemFont(ofSize: 11, weight: .semibold), .foregroundColor: NSColor.white,
+            ])
+            pill.toolTip = L("On for every paste — click to turn off")
+            pill.identifier = NSUserInterfaceItemIdentifier(name)
+            activeBar.addSubview(pill)
+        }
+        activeBar.needsLayout = true
+        activeBar.invalidateIntrinsicContentSize()
+    }
+
+    @objc private func turnOffTransform(_ sender: NSButton) {
+        guard let name = sender.identifier?.rawValue, let command = commands.first(where: { $0.name == name }) else { return }
+        actions?.toggleTransform(command)
     }
 
     private static var searchModes: [(mode: SearchMode, title: String, symbol: String)] {
@@ -476,6 +514,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
                                             String(paletteCommands.count), String(paletteItemIDs.count), generatorsPrefix)
             } else {
                 statusLabel.stringValue = L("%@ commands for the selected item — ↩ run · %@ generators · Esc back", String(paletteCommands.count), generatorsPrefix)
+            }
+            if paletteKind == .commands, !paletteItemIDs.isEmpty {
+                statusLabel.stringValue += " · " + L("⌥↩ keep on for every paste")
             }
             return
         }
@@ -865,7 +906,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cell = tableView.makeView(withIdentifier: ItemCellView.identifier, owner: nil) as? ItemCellView ?? ItemCellView()
         if let paletteCommands, row < paletteCommands.count {
-            cell.configure(number: row + 1, command: paletteCommands[row])
+            cell.configure(number: row + 1, command: paletteCommands[row], active: activeTransforms.contains(paletteCommands[row].name))
         } else if let result = pluginResult(at: row) {
             cell.configure(number: row + 1, result: result)
         } else {
@@ -1533,6 +1574,14 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             select(0)
         case #selector(NSResponder.scrollToEndOfDocument(_:)):
             select(rowCount - 1)
+        case #selector(NSResponder.insertNewlineIgnoringFieldEditor(_:)):
+            guard let commands = paletteCommands else { return false }
+            let row = tableView.selectedRow
+            guard paletteKind == .commands, row >= 0, row < commands.count else {
+                NSSound.beep()
+                return true
+            }
+            actions?.toggleTransform(commands[row])
         case #selector(NSResponder.insertNewline(_:)):
             activateSelected(plainText: NSApp.currentEvent?.modifierFlags.contains(.shift) ?? false)
         case #selector(NSResponder.cancelOperation(_:)):
@@ -1948,6 +1997,47 @@ final class HoverView: NSView {
     }
 }
 
+final class FlowView: NSView {
+    private let spacing: CGFloat = 6
+    private let rowHeight: CGFloat = 18
+    private var laidOutHeight: CGFloat = 0
+
+    override var isFlipped: Bool { true }
+
+    override var intrinsicContentSize: NSSize {
+        NSSize(width: NSView.noIntrinsicMetric, height: arrange(width: bounds.width, apply: false))
+    }
+
+    override func layout() {
+        super.layout()
+        let height = arrange(width: bounds.width, apply: true)
+        if height != laidOutHeight {
+            laidOutHeight = height
+            invalidateIntrinsicContentSize()
+        }
+    }
+
+    private func arrange(width: CGFloat, apply: Bool) -> CGFloat {
+        guard !subviews.isEmpty else { return 0 }
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        for view in subviews {
+            let itemWidth = min(view.fittingSize.width, max(width, 1))
+            if x > 0, x + itemWidth > width {
+                x = 0
+                y += rowHeight + spacing
+            }
+            if apply { view.frame = NSRect(x: x, y: y, width: itemWidth, height: rowHeight) }
+            x += itemWidth + spacing
+        }
+        return y + rowHeight + spacing
+    }
+}
+
+final class PillButton: NSButton {
+    override var allowsVibrancy: Bool { false }
+}
+
 final class HistoryTableView: NSTableView {
     var canDrag: () -> Bool = { true }
 
@@ -2077,12 +2167,12 @@ final class ItemCellView: NSTableCellView {
         toolTip = nil
     }
 
-    func configure(number: Int, command: UserCommand) {
+    func configure(number: Int, command: UserCommand, active: Bool = false) {
         titleLabel.font = .systemFont(ofSize: 13)
         shortcutLabel.stringValue = number <= 9 ? Self.quickPastePrefix + "\(number)" : ""
         iconView.image = NSImage(systemSymbolName: command.input == .none ? "sparkles" : "bolt",
                                  accessibilityDescription: nil)
-        marksLabel.stringValue = command.usesShell ? "⚠︎" : ""
+        marksLabel.stringValue = (active ? "●" : "") + (command.usesShell ? "⚠︎" : "")
         toolTip = command.usesShell ? L("Shell command: not sandboxed") : nil
         titleLabel.stringValue = command.displayName
         detailLabel.stringValue = command.keysDisplay ?? command.output.rawValue

@@ -310,3 +310,7 @@
 "Delete the sequence “%@”?" = "シーケンス「%@」を削除しますか？";
 "It is removed from commands.json." = "commands.json から削除されます。";
 "%@ global" = "%@ グローバル";
+"“%@” failed, so nothing was pasted" = "「%@」が失敗したため、何もペーストされませんでした";
+"On for every paste — click to turn off" = "すべてのペーストに適用中 — クリックでオフ";
+"⌥↩ keep on for every paste" = "⌥↩ すべてのペーストで有効のままにする";
+"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "コマンドパレットで: コマンドをすべてのペーストで有効のままにし、リストの上にラベルで表示します。ラベルをクリックするとオフになります";

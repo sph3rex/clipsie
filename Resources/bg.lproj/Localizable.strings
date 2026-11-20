@@ -310,3 +310,7 @@
 "Delete the sequence “%@”?" = "Да се изтрие ли последователността „%@“?";
 "It is removed from commands.json." = "Тя ще бъде премахната от commands.json.";
 "%@ global" = "%@ глобално";
+"“%@” failed, so nothing was pasted" = "„%@“ не успя, затова нищо не беше поставено";
+"On for every paste — click to turn off" = "Включено за всяко поставяне — щракнете, за да изключите";
+"⌥↩ keep on for every paste" = "⌥↩ остави включено за всяко поставяне";
+"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "в палитрата с команди: оставя команда включена за всяко поставяне, показана като етикет над списъка; щракване върху етикета я изключва";

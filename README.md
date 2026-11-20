@@ -77,6 +77,7 @@ Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar i
 | <kbd>⌘</kbd><kbd>⇧</kbd><kbd>E</kbd> or `>>` | generators (UUID, password, timestamp…) |
 | <kbd>→</kbd> / <kbd>←</kbd> | with the cursor at the end (← at the start) of the search: cycle commands → generators → sequences → back to your search |
 | <kbd>⌘</kbd><kbd>R</kbd> | run the last command again, on the selected items |
+| <kbd>⌥</kbd><kbd>↩</kbd> in `>` | keep a command on: every item you paste through Clipsie goes through it (e.g. Paste UPPERCASE or Paste with secrets redacted) until you turn it off. Active commands show as pills under the list tabs; click one to turn it off. If one fails, nothing is pasted. They're off again after Clipsie restarts |
 | `` ``` `` typed quickly | paste the item as a Markdown code block |
 | `??` typed quickly | help: all keys, search filters and script examples |
 | <kbd>Esc</kbd> | clear the search, then close |
@@ -111,6 +112,8 @@ Scripts run sandboxed inside Clipsie: no files, no network, only a small `clip` 
 
 With several items selected, a command runs once per item and the results are joined (`"multiple": "each"`, the default), or once on all their texts joined together (`"multiple": "all"`). Either way, `"separator"` sets what goes between them.
 
+A command with `"output": "paste"` or `"copy"` also saves its result to the history; `"saveOutput": false` skips that (the built-in AI commands below do).
+
 `"types"` limits a command to kinds of items: `text`, `rich`, `image`, `file`, `link`, `color`, `other`. Without it, a command applies to items that have text or files.
 
 ## For AI chats
@@ -119,7 +122,13 @@ Built-in commands for pasting into ChatGPT, Claude and the like (<kbd>⌘</kbd><
 
 - **Paste as AI context** wraps each selected item in a code block, headed by the app it came from, so several snippets arrive as one clearly separated prompt.
 - **Paste without terminal colours** removes the colour and cursor codes that terminal output often carries.
-- **Paste with secrets redacted** replaces API keys and tokens (OpenAI, Anthropic, Stripe, GitHub, GitLab, AWS, Slack, Google), JWTs, `Bearer` tokens, passwords in URLs, `password=` / `token:` / `client_secret` values and private keys with placeholders like `[API KEY]`. It's a best effort, not a guarantee: read before you send.
+- **Paste with secrets redacted** replaces API keys and tokens (OpenAI, Anthropic, Stripe, GitHub, GitLab, AWS, Slack, Google), JWTs, `Bearer` tokens, passwords in URLs, `password=` / `token:` / `client_secret` values and private keys with placeholders like `[API KEY]`. It also hides user names in home folders (`/Users/…`, `/home/…`, `C:\Users\…`), `user@host` prompts and `….local` machine names. Add your own words to `redact` in `config.json`: plain words match whole words in any case, `/…/` is a regular expression, and `{"match": …, "with": …}` picks the placeholder:
+
+  ```json
+  "redact": ["Acme", "/PROJ-\\d+/", {"match": "Project Falcon", "with": "[project]"}]
+  ```
+
+  It's a best effort, not a guarantee: read before you send. `config.json` isn't encrypted, so the words you list there are stored as plain text.
 
 The preview header shows a rough token count (≈ characters ÷ 4) for text items. Like the image actions, these commands can be replaced by one of yours with the same name in `commands.json`, e.g. to add your own patterns to the redaction, or hidden with `"enabled": false`.
 
@@ -177,7 +186,7 @@ return { value: hex, title: `${m[1]} = 0x${hex}` };
 
 ## Settings
 
-Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), the sequences prefix (`sequencesPrefix`, default `>>>`), the repeat-last-command key (`repeatCommandShortcut`, default `cmd+r`), which plugins run (`activePlugins`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
+Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), the sequences prefix (`sequencesPrefix`, default `>>>`), the repeat-last-command key (`repeatCommandShortcut`, default `cmd+r`), which plugins run (`activePlugins`), extra words to redact (`redact`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
 
 ## Privacy
 

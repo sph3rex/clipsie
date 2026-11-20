@@ -19,6 +19,7 @@ final class ScriptEngine {
     static let plugins = ScriptEngine(label: "plugins")
 
     static var historyProvider: ((Int) -> [String])?
+    static var redactions: [[String: String]] = []
 
     private let queue: DispatchQueue
     private let machine: JSVirtualMachine
@@ -161,6 +162,7 @@ final class ScriptEngine {
         }
         define("log", log)
         clip.setObject(imageAPI(in: context), forKeyedSubscript: "image" as NSString)
+        clip.setObject(Self.redactions, forKeyedSubscript: "redactions" as NSString)
         context.setObject(clip, forKeyedSubscript: "clip" as NSString)
         let console = JSValue(newObjectIn: context)!
         console.setObject(object(log), forKeyedSubscript: "log" as NSString)

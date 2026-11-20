@@ -57,6 +57,7 @@ struct Config: Codable {
     var generatorsShortcut = "cmd+shift+e"
     var repeatCommandShortcut = "cmd+r"
     var activePlugins = ["calc.js"]
+    var redact: [RedactRule] = []
     var multiPasteSeparator = "\n"
     var quickPasteModifiers = "cmd"
     var moveItemModifiers = "cmd"
@@ -108,6 +109,7 @@ struct Config: Codable {
         generatorsShortcut = try c.decodeIfPresent(String.self, forKey: .generatorsShortcut) ?? d.generatorsShortcut
         repeatCommandShortcut = try c.decodeIfPresent(String.self, forKey: .repeatCommandShortcut) ?? d.repeatCommandShortcut
         activePlugins = try c.decodeIfPresent([String].self, forKey: .activePlugins) ?? d.activePlugins
+        redact = try c.decodeIfPresent([RedactRule].self, forKey: .redact) ?? d.redact
         multiPasteSeparator = try c.decodeIfPresent(String.self, forKey: .multiPasteSeparator) ?? d.multiPasteSeparator
         quickPasteModifiers = try c.decodeIfPresent(String.self, forKey: .quickPasteModifiers) ?? d.quickPasteModifiers
         moveItemModifiers = try c.decodeIfPresent(String.self, forKey: .moveItemModifiers) ?? d.moveItemModifiers
@@ -149,5 +151,20 @@ struct Config: Codable {
             try encoder.encode(Config()).write(to: AppPaths.config)
         }
         return try JSONDecoder().decode(Config.self, from: Data(contentsOf: AppPaths.config))
+    }
+}
+
+struct RedactRule: Codable {
+    let match: String
+    var with: String?
+
+    init(from decoder: Decoder) throws {
+        if let word = try? decoder.singleValueContainer().decode(String.self) {
+            match = word
+            return
+        }
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        match = try c.decode(String.self, forKey: .match)
+        with = try c.decodeIfPresent(String.self, forKey: .with)
     }
 }

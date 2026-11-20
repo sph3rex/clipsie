@@ -310,3 +310,7 @@
 "Delete the sequence “%@”?" = "Die Sequenz „%@“ löschen?";
 "It is removed from commands.json." = "Sie wird aus commands.json entfernt.";
 "%@ global" = "%@ global";
+"“%@” failed, so nothing was pasted" = "„%@“ ist fehlgeschlagen, daher wurde nichts eingefügt";
+"On for every paste — click to turn off" = "Aktiv für jedes Einfügen – zum Ausschalten klicken";
+"⌥↩ keep on for every paste" = "⌥↩ für jedes Einfügen aktiv lassen";
+"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "in der Befehlspalette: einen Befehl für jedes Einfügen aktiv lassen, angezeigt als Kapsel über der Liste; Klick auf die Kapsel schaltet ihn aus";
