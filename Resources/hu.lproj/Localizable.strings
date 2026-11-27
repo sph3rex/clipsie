@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ maradjon aktív minden beillesztésnél";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "a parancspalettán: egy parancs aktív marad minden beillesztésnél, címkeként látszik az ablak alján; a címkére kattintva kikapcsol";
 "Generators" = "Generátorok";
+"Clipsie (ignoring the next copy)" = "Clipsie (a következő másolást figyelmen kívül hagyja)";
+"Ignore Next Copy" = "Következő másolás kihagyása";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Érvénytelen, vagy egy másik app már használja. Módosítsd a(z) %@ értékét a config.json fájlban (\"\" kikapcsolja).";
+"Base64, decoded" = "Base64, dekódolva";
+"JWT" = "JWT";
+"URL parameters" = "URL-paraméterek";
+"Unix timestamp" = "Unix-időbélyeg";
+"expired %@" = "lejárt %@";
+"expires %@" = "lejár %@";
+"Suggested:" = "Javaslatok:";
+"The two selected items are identical · ↩ pastes both" = "A két kijelölt elem azonos · ↩ mindkettőt beilleszti";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− csak az elsőként kijelölt elemben · + csak a másodikban · ↩ mindkettőt beilleszti";

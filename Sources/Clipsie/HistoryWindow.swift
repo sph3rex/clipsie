@@ -29,7 +29,7 @@ final class HistoryPanel: NSPanel {
 }
 
 final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTableViewDataSource,
-    NSTableViewDelegate, NSTextFieldDelegate, NSMenuDelegate, QLPreviewPanelDataSource {
+    NSTableViewDelegate, NSTextFieldDelegate, NSTextViewDelegate, NSMenuDelegate, QLPreviewPanelDataSource {
 
     weak var actions: HistoryActions?
     var commands: [UserCommand] = []
@@ -298,6 +298,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewText.isEditable = false
         previewText.isSelectable = true
         previewText.allowsUndo = true
+        previewText.delegate = self
         previewText.backgroundColor = .textBackgroundColor
         previewText.isAutomaticQuoteSubstitutionEnabled = false
         previewText.isAutomaticDashSubstitutionEnabled = false
@@ -817,11 +818,52 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         let count = selectionOrder.count
         DispatchQueue.global(qos: .userInitiated).async { [store, weak self] in
             let texts = selection.map { Content.text(store.representations(for: $0)) ?? store.ocrText(for: $0) }
+            var diff: [LineDiff.Line]?
+            if count == 2, let first = texts[0], let second = texts[1], first.utf8.count + second.utf8.count <= 1_000_000 {
+                diff = LineDiff.lines(from: first, to: second)
+            }
             DispatchQueue.main.async {
                 guard let self, generation == self.previewGeneration else { return }
-                self.showMultiPreview(texts, count: count)
+                if let diff {
+                    self.showDiff(diff)
+                } else {
+                    self.showMultiPreview(texts, count: count)
+                }
             }
         }
+    }
+
+    private func showDiff(_ lines: [LineDiff.Line]) {
+        setPreviewHeader("")
+        previewImage.image = nil
+        previewImage.isHidden = true
+        previewScroll.isHidden = false
+        previewSearchText = nil
+        updateSearchButtons()
+        let changed = lines.contains { $0.kind != .same }
+        let note = changed
+            ? L("− only in the first selected item · + only in the second · ↩ pastes both")
+            : L("The two selected items are identical · ↩ pastes both")
+        let content = NSMutableAttributedString(string: note + "\n\n", attributes: [
+            .font: NSFont.systemFont(ofSize: 11), .foregroundColor: NSColor.labelColor,
+        ])
+        for line in lines.prefix(20_000) {
+            var attributes: [NSAttributedString.Key: Any] = [.font: Self.previewFont, .foregroundColor: NSColor.textColor]
+            let marker: String
+            switch line.kind {
+            case .same:
+                marker = "  "
+            case .removed:
+                marker = "− "
+                attributes[.backgroundColor] = NSColor.systemRed.withAlphaComponent(0.18)
+            case .added:
+                marker = "+ "
+                attributes[.backgroundColor] = NSColor.systemGreen.withAlphaComponent(0.18)
+            }
+            content.append(NSAttributedString(string: marker + line.text + "\n", attributes: attributes))
+        }
+        previewText.textStorage?.setAttributedString(content)
+        previewText.scrollToBeginningOfDocument(nil)
     }
 
     private func showMultiPreview(_ texts: [String?], count: Int) {
@@ -1208,6 +1250,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         previewImage.isHidden = true
         previewScroll.isHidden = false
         let content = NSMutableAttributedString()
+        if let suggestions = suggestionsLine(for: reps) {
+            content.append(suggestions)
+        }
         if let image {
             let attachment = NSTextAttachment()
             attachment.image = image
@@ -1226,12 +1271,54 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         }
         if let text {
             content.append(richText(for: text, reps: reps, generation: previewGeneration))
+            for section in Decoders.sections(for: text) {
+                content.append(NSAttributedString(string: "\n\n" + section.title + "\n", attributes: [
+                    .font: NSFont.systemFont(ofSize: 11, weight: .semibold), .foregroundColor: NSColor.labelColor,
+                ]))
+                content.append(NSAttributedString(string: section.body, attributes: [
+                    .font: Self.previewFont, .foregroundColor: NSColor.textColor,
+                ]))
+            }
         } else {
             content.append(NSAttributedString(string: recognizedText.map { String($0.prefix(200_000)) } ?? L("(no text)"),
                                               attributes: [.font: Self.previewFont, .foregroundColor: NSColor.textColor]))
         }
         previewText.textStorage?.setAttributedString(content)
         previewText.scrollToBeginningOfDocument(nil)
+    }
+
+    private static let commandLinkScheme = "clipsie-command"
+
+    private func suggestionsLine(for reps: [Representation]) -> NSAttributedString? {
+        let subject = CommandSubject(reps)
+        let fitting = commands.filter {
+            $0.steps == nil && $0.input == .item && ($0.match != nil || $0.types != nil) && $0.applies(to: subject, sourceApp: nil)
+        }
+        let suggested = CommandUsage.arranged(fitting, in: PaletteKind.commands.rawValue).prefix(3)
+        guard !suggested.isEmpty else { return nil }
+        let small = NSFont.systemFont(ofSize: 11)
+        let line = NSMutableAttributedString(string: L("Suggested:") + " ", attributes: [.font: small, .foregroundColor: NSColor.labelColor])
+        for (index, command) in suggested.enumerated() {
+            var components = URLComponents()
+            components.scheme = Self.commandLinkScheme
+            components.path = command.name
+            guard let url = components.url else { continue }
+            if index > 0 { line.append(NSAttributedString(string: " · ", attributes: [.font: small, .foregroundColor: NSColor.labelColor])) }
+            line.append(NSAttributedString(string: command.displayName, attributes: [.font: small, .link: url, .foregroundColor: NSColor.linkColor]))
+        }
+        line.append(NSAttributedString(string: "\n\n", attributes: [.font: small]))
+        return line
+    }
+
+    func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {
+        guard let url = link as? URL, url.scheme == Self.commandLinkScheme else { return false }
+        guard let name = URLComponents(url: url, resolvingAgainstBaseURL: false)?.path,
+              let command = commands.first(where: { $0.name == name }), let id = selectedID else {
+            NSSound.beep()
+            return true
+        }
+        run(command, itemIDs: [id])
+        return true
     }
 
     private func showHelp() {

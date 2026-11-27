@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ 对每次粘贴保持开启";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "在命令面板中：让某个命令对每次粘贴保持开启，并以标签显示在窗口底部；点按标签即可关闭";
 "Generators" = "生成器";
+"Clipsie (ignoring the next copy)" = "Clipsie（忽略下一次拷贝）";
+"Ignore Next Copy" = "忽略下一次拷贝";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "它无效或已被其他 App 使用。请在 config.json 中更改 %@（设为 \"\" 即关闭）。";
+"Base64, decoded" = "Base64 解码结果";
+"JWT" = "JWT";
+"URL parameters" = "URL 参数";
+"Unix timestamp" = "Unix 时间戳";
+"expired %@" = "已过期（%@）";
+"expires %@" = "将过期（%@）";
+"Suggested:" = "建议：";
+"The two selected items are identical · ↩ pastes both" = "所选的两个项目完全相同 · ↩ 粘贴两者";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− 仅在第一个所选项目中 · + 仅在第二个中 · ↩ 粘贴两者";

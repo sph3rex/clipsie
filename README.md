@@ -18,6 +18,7 @@ Clipsie lives in the menu bar and remembers everything you copy: text, formatted
 - **Instant search** over tens of thousands of items, with filters: `app:slack`, `type:image`, `type:link`, `date:week`, `tag:work`, `is:pinned`.
 - **Tags** to keep and group things: tagged items stay in the Tagged list when they leave the history. <kbd>⌘</kbd><kbd>I</kbd> toggles the built-in `important` tag.
 - **Rich previews:** images, files (with Quick Look), colors with their hex/rgb/hsl values, highlighted JSON, links with a clickable title.
+- **Developer helpers in the preview:** JWTs (with their expiry), Unix timestamps, Base64 and URL parameters are decoded below the item; select two items to see their differences line by line; up to three suggested actions that fit the item (Pretty-print JSON, Base64 decode, image actions…) are one click away.
 - **Text in images:** screenshots are searchable by the text in them (recognized on your Mac).
 - **Commands in JavaScript,** run sandboxed: transform an item (trim, change case, hash, Base64, JSON…) or generate something (UUID, password, timestamp), and add your own in a few lines.
 - **Calculator and unit converter** in the search: `15% of 80`, `5 km in miles`, `100 f to c`.
@@ -187,12 +188,12 @@ return { value: hex, title: `${m[1]} = 0x${hex}` };
 
 ## Settings
 
-Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size (50,000 items by default), apps to ignore, apps that always get plain text, what to store (`saveText`, `saveImages`, `saveFiles`), the search mode (`searchMode`: `exact`, `fuzzy` for typo-tolerant search, or `regex`), merging quick successive copies of the same growing text into one entry, for the apps listed in `mergeCopiesWithinMsByApp` (default `{"com.jetbrains.": 1000}`, the time window in ms), deleting everything when Clipsie quits (`clearHistoryOnQuit`, or the menu's Clear on Quit) except items with a tag listed in `keepTagsOnQuit` (default `["important"]`), the sequences prefix (`sequencesPrefix`, default `>>>`), the repeat-last-command key (`repeatCommandShortcut`, default `cmd+r`), which plugins run (`activePlugins`), extra words to redact (`redact`), web-search buttons, and more. Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
+Menu bar icon → Configuration → Edit Settings… opens `config.json`: shortcuts, history size, what to record, apps to ignore, per-app paste rules, search mode, plugins, redaction words, web-search buttons and more. **Every option, its default and examples are described in [SETTINGS.md](SETTINGS.md).** Reload with menu bar icon → Reload Settings & Commands. Keys you leave out keep their defaults.
 
 ## Privacy
 
 - **Encrypted history.** Items are stored in an SQLite database encrypted with [SQLCipher](https://www.zetetic.net/sqlcipher/) (AES-256); the key is kept in your login Keychain.
-- **Skips secrets.** Copies that password managers mark as concealed or transient are never recorded, nor is anything from apps in `ignoredApps`. A default command skips one-time codes.
+- **Skips secrets.** Copies that password managers mark as concealed or transient are never recorded, nor is anything from apps in `ignoredApps`. A default command skips one-time codes. Before copying something sensitive, menu bar icon → **Ignore Next Copy** (or `ignoreNextCopyHotkey`) skips just that one copy.
 - **Stays on your Mac.** Clipsie makes no network requests of its own, except to load the icons of the web-search buttons and, only if you turn on `linkPreviews`, the title of a selected link.
 - **Sandboxed scripts.** JavaScript commands and plugins can't read files or use the network. Shell commands (menu commands only, marked ⚠︎) and executable plugins are possible too, but they are not sandboxed.
 - **Export** (menu bar icon → Import & Export → Export as JSON…) writes an unencrypted file, for backups or moving to another Mac; Import reads it back.

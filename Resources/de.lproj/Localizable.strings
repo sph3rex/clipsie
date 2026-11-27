@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ für jedes Einfügen aktiv lassen";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "in der Befehlspalette: einen Befehl für jedes Einfügen aktiv lassen, angezeigt als Kapsel unten im Fenster; Klick auf die Kapsel schaltet ihn aus";
 "Generators" = "Generatoren";
+"Clipsie (ignoring the next copy)" = "Clipsie (ignoriert das nächste Kopieren)";
+"Ignore Next Copy" = "Nächstes Kopieren ignorieren";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Er ist ungültig oder wird schon von einer anderen App verwendet. Ändere %@ in config.json (\"\" schaltet ihn ab).";
+"Base64, decoded" = "Base64, dekodiert";
+"JWT" = "JWT";
+"URL parameters" = "URL-Parameter";
+"Unix timestamp" = "Unix-Zeitstempel";
+"expired %@" = "abgelaufen %@";
+"expires %@" = "läuft ab %@";
+"Suggested:" = "Vorschläge:";
+"The two selected items are identical · ↩ pastes both" = "Die beiden ausgewählten Einträge sind identisch · ↩ fügt beide ein";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− nur im zuerst ausgewählten Eintrag · + nur im zweiten · ↩ fügt beide ein";

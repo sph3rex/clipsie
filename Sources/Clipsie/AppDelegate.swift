@@ -51,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         ocr.onRecognized = { [weak self] _ in self?.history.refreshIfVisible() }
         paster.onClipboardWritten = { [weak self] in self?.monitor.skipCurrentChange() }
         monitor.onCapture = { [weak self] capture in self?.handleCapture(capture) }
+        monitor.onIgnoreChanged = { [weak self] in self?.updateStatusIcon() }
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         let menu = NSMenu()
@@ -184,6 +185,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
             if !registered {
                 showError(L("Cannot register shortcut “%@”", config.pastePlainHotkey),
                           L("It is invalid or already used by another app. Change pastePlainHotkey in config.json (\"\" disables it)."))
+            }
+        }
+        if !config.ignoreNextCopyHotkey.isEmpty {
+            let registered = Shortcut(config.ignoreNextCopyHotkey).map {
+                center.register($0, action: { [weak self] in self?.toggleIgnoreNextCopy() })
+            } ?? false
+            if !registered {
+                showError(L("Cannot register shortcut “%@”", config.ignoreNextCopyHotkey),
+                          L("It is invalid or already used by another app. Change %@ in config.json (\"\" disables it).", "ignoreNextCopyHotkey"))
             }
         }
         for command in commands where command.type == .menu {
@@ -713,10 +723,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
     }
 
     private func updateStatusIcon() {
-        let image = monitor.isPaused
-            ? NSImage(systemSymbolName: "pause.circle", accessibilityDescription: L("Clipsie (paused)"))
-            : NSImage(named: "StatusIcon") ?? NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: "Clipsie")
-        image?.accessibilityDescription = monitor.isPaused ? L("Clipsie (paused)") : "Clipsie"
+        let image: NSImage?
+        let description: String
+        if monitor.isPaused {
+            image = NSImage(systemSymbolName: "pause.circle", accessibilityDescription: nil)
+            description = L("Clipsie (paused)")
+        } else if monitor.ignoresNextCopy {
+            image = NSImage(systemSymbolName: "eye.slash", accessibilityDescription: nil)
+            description = L("Clipsie (ignoring the next copy)")
+        } else {
+            image = NSImage(named: "StatusIcon") ?? NSImage(systemSymbolName: "doc.on.clipboard", accessibilityDescription: nil)
+            description = "Clipsie"
+        }
+        image?.accessibilityDescription = description
+        statusItem.button?.toolTip = description
         image?.isTemplate = true
         statusItem.button?.image = image
     }
@@ -775,6 +795,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         let hotkey = Shortcut(config.historyHotkey)?.display ?? config.historyHotkey
         addMenuItem(to: menu, L("Show History…") + "   " + hotkey, #selector(showHistoryFromMenu))
         addMenuItem(to: menu, L("Pause Capturing"), #selector(togglePause)).state = monitor.isPaused ? .on : .off
+        let ignoreKey = Shortcut(config.ignoreNextCopyHotkey).map { "   " + $0.display } ?? ""
+        addMenuItem(to: menu, L("Ignore Next Copy") + ignoreKey, #selector(toggleIgnoreNextCopy)).state = monitor.ignoresNextCopy ? .on : .off
         addSubmenu(to: menu, L("Cleanup")) { submenu in
             addMenuItem(to: submenu, L("Clear History…"), #selector(clearHistory))
             addMenuItem(to: submenu, L("Remove Duplicates…"), #selector(removeDuplicates))
@@ -846,6 +868,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, Histor
         guard let name = sender.representedObject as? String,
               let command = commands.first(where: { $0.name == name }) else { return }
         run(command, itemIDs: store.latestID().map { [$0] } ?? [], target: menuTargetApp)
+    }
+
+    @objc private func toggleIgnoreNextCopy() {
+        monitor.ignoresNextCopy.toggle()
     }
 
     @objc private func togglePause() {

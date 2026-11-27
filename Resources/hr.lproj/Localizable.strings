@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ ostavi uključeno za svako lijepljenje";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "u paleti naredbi: ostavi naredbu uključenom za svako lijepljenje, prikazanu kao oznaku na dnu prozora; klik na oznaku je isključuje";
 "Generators" = "Generatori";
+"Clipsie (ignoring the next copy)" = "Clipsie (zanemaruje sljedeće kopiranje)";
+"Ignore Next Copy" = "Zanemari sljedeće kopiranje";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Neispravan je ili ga već koristi druga aplikacija. Promijenite %@ u config.json (\"\" ga isključuje).";
+"Base64, decoded" = "Base64, dekodirano";
+"JWT" = "JWT";
+"URL parameters" = "Parametri URL-a";
+"Unix timestamp" = "Unix vremenska oznaka";
+"expired %@" = "istekao %@";
+"expires %@" = "istječe %@";
+"Suggested:" = "Prijedlozi:";
+"The two selected items are identical · ↩ pastes both" = "Dvije odabrane stavke su jednake · ↩ lijepi obje";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− samo u prvoj odabranoj stavci · + samo u drugoj · ↩ lijepi obje";

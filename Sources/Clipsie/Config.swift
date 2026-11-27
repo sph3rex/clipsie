@@ -48,6 +48,7 @@ struct Config: Codable {
     var maxItemBytes = 50 * 1024 * 1024
     var historyHotkey = "cmd+shift+v"
     var pastePlainHotkey = "cmd+alt+shift+v"
+    var ignoreNextCopyHotkey = ""
     var menuItemCount = 20
     var showPreview = true
     var commandsPrefix = ">"
@@ -100,6 +101,7 @@ struct Config: Codable {
         maxItemBytes = try c.decodeIfPresent(Int.self, forKey: .maxItemBytes) ?? d.maxItemBytes
         historyHotkey = try c.decodeIfPresent(String.self, forKey: .historyHotkey) ?? d.historyHotkey
         pastePlainHotkey = try c.decodeIfPresent(String.self, forKey: .pastePlainHotkey) ?? d.pastePlainHotkey
+        ignoreNextCopyHotkey = try c.decodeIfPresent(String.self, forKey: .ignoreNextCopyHotkey) ?? d.ignoreNextCopyHotkey
         menuItemCount = try c.decodeIfPresent(Int.self, forKey: .menuItemCount) ?? d.menuItemCount
         showPreview = try c.decodeIfPresent(Bool.self, forKey: .showPreview) ?? d.showPreview
         commandsPrefix = try c.decodeIfPresent(String.self, forKey: .commandsPrefix) ?? d.commandsPrefix

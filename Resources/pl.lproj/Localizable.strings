@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ pozostaw włączone dla każdego wklejenia";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "w palecie poleceń: pozostaw polecenie włączone dla każdego wklejenia, widoczne jako etykieta na dole okna; kliknij etykietę, aby je wyłączyć";
 "Generators" = "Generatory";
+"Clipsie (ignoring the next copy)" = "Clipsie (ignoruje następne kopiowanie)";
+"Ignore Next Copy" = "Ignoruj następne kopiowanie";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Jest nieprawidłowy lub używany już przez inną aplikację. Zmień %@ w config.json (\"\" go wyłącza).";
+"Base64, decoded" = "Base64, zdekodowane";
+"JWT" = "JWT";
+"URL parameters" = "Parametry URL";
+"Unix timestamp" = "Znacznik czasu Unix";
+"expired %@" = "wygasł %@";
+"expires %@" = "wygasa %@";
+"Suggested:" = "Sugestie:";
+"The two selected items are identical · ↩ pastes both" = "Oba zaznaczone elementy są identyczne · ↩ wkleja oba";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− tylko w pierwszym zaznaczonym elemencie · + tylko w drugim · ↩ wkleja oba";

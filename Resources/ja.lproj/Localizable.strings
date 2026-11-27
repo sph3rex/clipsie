@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ すべてのペーストで有効のままにする";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "コマンドパレットで: コマンドをすべてのペーストで有効のままにし、ウインドウ下部にラベルで表示します。ラベルをクリックするとオフになります";
 "Generators" = "ジェネレータ";
+"Clipsie (ignoring the next copy)" = "Clipsie（次のコピーを無視）";
+"Ignore Next Copy" = "次のコピーを無視";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "無効か、ほかのアプリですでに使われています。config.json の %@ を変更してください（\"\" でオフ）。";
+"Base64, decoded" = "Base64（デコード済み）";
+"JWT" = "JWT";
+"URL parameters" = "URL パラメータ";
+"Unix timestamp" = "Unix タイムスタンプ";
+"expired %@" = "期限切れ（%@）";
+"expires %@" = "有効期限（%@）";
+"Suggested:" = "候補:";
+"The two selected items are identical · ↩ pastes both" = "選択した 2 つの項目は同一です · ↩ で両方をペースト";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− 最初に選択した項目のみ · + 2 番目のみ · ↩ で両方をペースト";

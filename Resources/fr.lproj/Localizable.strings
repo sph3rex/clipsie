@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ garder actif pour chaque collage";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "dans la palette des commandes : garder une commande active pour chaque collage, affichée en pastille en bas de la fenêtre ; cliquez sur la pastille pour la désactiver";
 "Generators" = "Générateurs";
+"Clipsie (ignoring the next copy)" = "Clipsie (ignore la prochaine copie)";
+"Ignore Next Copy" = "Ignorer la prochaine copie";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Il est invalide ou déjà utilisé par une autre app. Modifiez %@ dans config.json (\"\" le désactive).";
+"Base64, decoded" = "Base64, décodé";
+"JWT" = "JWT";
+"URL parameters" = "Paramètres de l’URL";
+"Unix timestamp" = "Horodatage Unix";
+"expired %@" = "expiré %@";
+"expires %@" = "expire %@";
+"Suggested:" = "Suggestions :";
+"The two selected items are identical · ↩ pastes both" = "Les deux éléments sélectionnés sont identiques · ↩ colle les deux";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− seulement dans le premier élément sélectionné · + seulement dans le second · ↩ colle les deux";

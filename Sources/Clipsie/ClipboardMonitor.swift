@@ -3,6 +3,10 @@ import AppKit
 final class ClipboardMonitor: NSObject {
     var onCapture: ((Capture) -> Void)?
     var isPaused = false
+    var ignoresNextCopy = false {
+        didSet { onIgnoreChanged?() }
+    }
+    var onIgnoreChanged: (() -> Void)?
     var maxItemBytes = 50 * 1024 * 1024
     var ignoredApps: Set<String> = []
 
@@ -37,6 +41,10 @@ final class ClipboardMonitor: NSObject {
         guard changeCount != lastChangeCount else { return }
         lastChangeCount = changeCount
         guard !isPaused else { return }
+        if ignoresNextCopy {
+            ignoresNextCopy = false
+            return
+        }
 
         let sourceApp = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         if let sourceApp, ignoredApps.contains(sourceApp) { return }

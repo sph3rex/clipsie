@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ păstrează activ la fiecare lipire";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "în paleta de comenzi: păstrează o comandă activă la fiecare lipire, afișată ca etichetă în partea de jos a ferestrei; clic pe etichetă o oprește";
 "Generators" = "Generatoare";
+"Clipsie (ignoring the next copy)" = "Clipsie (ignoră următoarea copiere)";
+"Ignore Next Copy" = "Ignoră următoarea copiere";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Este invalidă sau deja folosită de altă aplicație. Schimbă %@ în config.json (\"\" o dezactivează).";
+"Base64, decoded" = "Base64, decodat";
+"JWT" = "JWT";
+"URL parameters" = "Parametrii URL-ului";
+"Unix timestamp" = "Marcaj de timp Unix";
+"expired %@" = "a expirat %@";
+"expires %@" = "expiră %@";
+"Suggested:" = "Sugestii:";
+"The two selected items are identical · ↩ pastes both" = "Cele două elemente selectate sunt identice · ↩ le lipește pe amândouă";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− doar în primul element selectat · + doar în al doilea · ↩ le lipește pe amândouă";

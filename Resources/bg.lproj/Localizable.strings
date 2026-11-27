@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ остави включено за всяко поставяне";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "в палитрата с команди: оставя команда включена за всяко поставяне, показана като етикет в долната част на прозореца; щракване върху етикета я изключва";
 "Generators" = "Генератори";
+"Clipsie (ignoring the next copy)" = "Clipsie (пренебрегва следващото копиране)";
+"Ignore Next Copy" = "Пренебрегни следващото копиране";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Невалидна е или вече се използва от друго приложение. Променете %@ в config.json (\"\" я изключва).";
+"Base64, decoded" = "Base64, декодирано";
+"JWT" = "JWT";
+"URL parameters" = "Параметри на URL";
+"Unix timestamp" = "Unix времеви печат";
+"expired %@" = "изтекъл %@";
+"expires %@" = "изтича %@";
+"Suggested:" = "Предложения:";
+"The two selected items are identical · ↩ pastes both" = "Двата избрани елемента са еднакви · ↩ поставя и двата";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− само в първия избран елемент · + само във втория · ↩ поставя и двата";

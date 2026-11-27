@@ -10,12 +10,12 @@ cask "clipsie" do
   desc "A smart clipboard manager packed with goodies: history with search, tags, JavaScript commands and plugins"
   homepage "https://github.com/sph3rex/clipsie"
 
-  depends_on macos: ">= :ventura"
+  depends_on macos: :ventura
 
   app "Clipsie.app"
 
-  postflight do
-    system_command "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "#{appdir}/Clipsie.app"]
+  postflight_steps do
+    run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{appdir}}/Clipsie.app"], must_succeed: false
   end
 
   uninstall quit: "local.clipsie"

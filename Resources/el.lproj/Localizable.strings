@@ -315,3 +315,15 @@
 "⌥↩ keep on for every paste" = "⌥↩ να μένει ενεργό σε κάθε επικόλληση";
 "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "στην παλέτα εντολών: μια εντολή μένει ενεργή σε κάθε επικόλληση, με ετικέτα στο κάτω μέρος του παραθύρου· κλικ στην ετικέτα την απενεργοποιεί";
 "Generators" = "Γεννήτριες";
+"Clipsie (ignoring the next copy)" = "Clipsie (αγνοεί την επόμενη αντιγραφή)";
+"Ignore Next Copy" = "Αγνόηση επόμενης αντιγραφής";
+"It is invalid or already used by another app. Change %@ in config.json (\"\" disables it)." = "Δεν είναι έγκυρη ή τη χρησιμοποιεί ήδη άλλη εφαρμογή. Αλλάξτε το %@ στο config.json (το \"\" την απενεργοποιεί).";
+"Base64, decoded" = "Base64, αποκωδικοποιημένο";
+"JWT" = "JWT";
+"URL parameters" = "Παράμετροι URL";
+"Unix timestamp" = "Χρονοσφραγίδα Unix";
+"expired %@" = "έληξε %@";
+"expires %@" = "λήγει %@";
+"Suggested:" = "Προτάσεις:";
+"The two selected items are identical · ↩ pastes both" = "Τα δύο επιλεγμένα στοιχεία είναι ίδια · ↩ επικολλά και τα δύο";
+"− only in the first selected item · + only in the second · ↩ pastes both" = "− μόνο στο πρώτο επιλεγμένο στοιχείο · + μόνο στο δεύτερο · ↩ επικολλά και τα δύο";
