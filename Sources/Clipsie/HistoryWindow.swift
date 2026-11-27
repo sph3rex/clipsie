@@ -61,7 +61,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     }
     var showsPreview = true {
         didSet {
-            previewContainer.isHidden = !showsPreview
+            previewContainer.isHidden = !(showsPreview || isShowingHelp)
             split.adjustSubviews()
         }
     }
@@ -72,7 +72,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private static let tabs: [HistoryTab] = [.history, .images, .tagged]
     private let searchIcon = NSButton()
     private let searchField = NSTextField()
-    private let paletteButton = NSButton()
+    private let paletteTabs = NSSegmentedControl(labels: [L("Commands"), L("Generators"), L("Sequences")],
+                                                 trackingMode: .selectOne, target: nil, action: nil)
+    private static let paletteKinds: [PaletteKind] = [.commands, .generators, .sequences]
     private let tableView = HistoryTableView()
     private let tableScroll = NSScrollView()
     private let split = NSSplitView()
@@ -84,7 +86,14 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private let activeBar = FlowView()
     private var tagBarHeight: NSLayoutConstraint!
     private var tagBarNames: [String] = []
-    private var isShowingHelp = false
+    private var isShowingHelp = false {
+        didSet {
+            guard isShowingHelp != oldValue else { return }
+            tableScroll.isHidden = isShowingHelp
+            previewContainer.isHidden = !(showsPreview || isShowingHelp)
+            split.adjustSubviews()
+        }
+    }
     private var previewSearchText: String?
     private var fenceStartedAt: Date?
     private var pluginResults: [PluginResult] = []
@@ -110,7 +119,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private var searchGeneration = 0
     private var previewGeneration = 0
     private var didPositionSplit = false
-    private var paletteCommands: [UserCommand]?
+    private var paletteCommands: [UserCommand]? {
+        didSet { paletteTabs.selectedSegment = paletteCommands == nil ? -1 : Self.paletteKinds.firstIndex(of: paletteKind) ?? -1 }
+    }
     private var paletteItemIDs: [Int64] = []
     private var paletteSubjects: [CommandSubject] = []
     private enum PaletteKind: String { case commands, generators, sequences }
@@ -237,13 +248,11 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         searchField.cell?.usesSingleLineMode = true
         searchField.delegate = self
 
-        paletteButton.image = NSImage(systemSymbolName: "bolt", accessibilityDescription: "Commands")
-        paletteButton.symbolConfiguration = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-        paletteButton.isBordered = false
-        paletteButton.contentTintColor = .secondaryLabelColor
-        paletteButton.refusesFirstResponder = true
-        paletteButton.target = self
-        paletteButton.action = #selector(togglePalette)
+        paletteTabs.selectedSegment = -1
+        paletteTabs.font = .systemFont(ofSize: NSFont.systemFontSize)
+        paletteTabs.target = self
+        paletteTabs.action = #selector(paletteTabChanged)
+        paletteTabs.refusesFirstResponder = true
 
         let topSeparator = NSBox()
         topSeparator.boxType = .separator
@@ -364,7 +373,7 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         statusLabel.lineBreakMode = .byTruncatingTail
         statusLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
-        let views: [NSView] = [searchIcon, searchField, paletteButton, topSeparator, tabControl, activeBar, split,
+        let views: [NSView] = [searchIcon, searchField, topSeparator, tabControl, paletteTabs, activeBar, split,
                                bottomSeparator, statusLabel]
         for view in views {
             view.translatesAutoresizingMaskIntoConstraints = false
@@ -376,23 +385,22 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
             searchIcon.centerYAnchor.constraint(equalTo: searchField.centerYAnchor),
             searchIcon.widthAnchor.constraint(equalToConstant: 24),
             searchField.leadingAnchor.constraint(equalTo: searchIcon.trailingAnchor, constant: 10),
-            searchField.trailingAnchor.constraint(equalTo: paletteButton.leadingAnchor, constant: -10),
-            paletteButton.centerYAnchor.constraint(equalTo: searchField.centerYAnchor),
-            paletteButton.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
-            paletteButton.widthAnchor.constraint(equalToConstant: 24),
-            paletteButton.heightAnchor.constraint(equalToConstant: 24),
+            searchField.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
             topSeparator.topAnchor.constraint(equalTo: searchField.bottomAnchor, constant: 14),
             topSeparator.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             topSeparator.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             tabControl.topAnchor.constraint(equalTo: topSeparator.bottomAnchor, constant: 8),
             tabControl.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
-            activeBar.topAnchor.constraint(equalTo: tabControl.bottomAnchor, constant: 4),
-            activeBar.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
-            activeBar.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
-            split.topAnchor.constraint(equalTo: activeBar.bottomAnchor),
+            paletteTabs.centerYAnchor.constraint(equalTo: tabControl.centerYAnchor),
+            paletteTabs.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
+            paletteTabs.leadingAnchor.constraint(greaterThanOrEqualTo: tabControl.trailingAnchor, constant: 12),
+            split.topAnchor.constraint(equalTo: tabControl.bottomAnchor, constant: 4),
             split.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             split.trailingAnchor.constraint(equalTo: content.trailingAnchor),
-            split.bottomAnchor.constraint(equalTo: bottomSeparator.topAnchor),
+            split.bottomAnchor.constraint(equalTo: activeBar.topAnchor),
+            activeBar.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 16),
+            activeBar.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -16),
+            activeBar.bottomAnchor.constraint(equalTo: bottomSeparator.topAnchor),
             bottomSeparator.leadingAnchor.constraint(equalTo: content.leadingAnchor),
             bottomSeparator.trailingAnchor.constraint(equalTo: content.trailingAnchor),
             bottomSeparator.bottomAnchor.constraint(equalTo: statusLabel.topAnchor, constant: -6),
@@ -464,7 +472,8 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
     private func updatePaletteHelp() {
         searchField.placeholderString = L("Search (?? help, %@ item commands, %@ generators, %@ sequences)",
                                           commandsPrefix, generatorsPrefix, sequencesPrefix)
-        paletteButton.toolTip = L("Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@", commandsPrefix,
+        paletteTabs.setEnabled(!sequencesPrefix.isEmpty, forSegment: 2)
+        paletteTabs.toolTip = L("Commands for the selected item: %@ or %@\nGenerators: %@ or %@\nSequences: %@", commandsPrefix,
                                   commandsShortcut?.display ?? "-", generatorsPrefix, generatorsShortcut?.display ?? "-",
                                   sequencesPrefix)
     }
@@ -730,8 +739,9 @@ final class HistoryWindowController: NSWindowController, NSWindowDelegate, NSTab
         runSearch(selecting: nil)
     }
 
-    @objc private func togglePalette() {
-        cyclePalette(forward: true)
+    @objc private func paletteTabChanged() {
+        let clicked = Self.paletteKinds[max(0, paletteTabs.selectedSegment)]
+        openPalette(paletteCommands != nil && paletteKind == clicked ? nil : clicked)
     }
 
     private func cyclePalette(forward: Bool) {
@@ -2020,7 +2030,7 @@ final class FlowView: NSView {
     private func arrange(width: CGFloat, apply: Bool) -> CGFloat {
         guard !subviews.isEmpty else { return 0 }
         var x: CGFloat = 0
-        var y: CGFloat = 0
+        var y = spacing
         for view in subviews {
             let itemWidth = min(view.fittingSize.width, max(width, 1))
             if x > 0, x + itemWidth > width {

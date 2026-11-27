@@ -313,4 +313,5 @@
 "“%@” failed, so nothing was pasted" = "«%@» falló, así que no se pegó nada";
 "On for every paste — click to turn off" = "Activo en cada pegado — haz clic para desactivar";
 "⌥↩ keep on for every paste" = "⌥↩ mantener activo en cada pegado";
-"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "en la paleta de comandos: mantener un comando activo en cada pegado, mostrado como etiqueta sobre la lista; haz clic en la etiqueta para desactivarlo";
+"in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "en la paleta de comandos: mantener un comando activo en cada pegado, mostrado como etiqueta en la parte inferior de la ventana; haz clic en la etiqueta para desactivarlo";
+"Generators" = "Generadores";

@@ -313,4 +313,5 @@
 "“%@” failed, so nothing was pasted" = "“%@”失败，因此没有粘贴任何内容";
 "On for every paste — click to turn off" = "每次粘贴都会应用——点按以关闭";
 "⌥↩ keep on for every paste" = "⌥↩ 对每次粘贴保持开启";
-"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "在命令面板中：让某个命令对每次粘贴保持开启，并以标签显示在列表上方；点按标签即可关闭";
+"in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "在命令面板中：让某个命令对每次粘贴保持开启，并以标签显示在窗口底部；点按标签即可关闭";
+"Generators" = "生成器";

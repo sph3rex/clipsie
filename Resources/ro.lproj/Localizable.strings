@@ -313,4 +313,5 @@
 "“%@” failed, so nothing was pasted" = "„%@” a eșuat, așa că nu s-a lipit nimic";
 "On for every paste — click to turn off" = "Activ la fiecare lipire — clic pentru a-l opri";
 "⌥↩ keep on for every paste" = "⌥↩ păstrează activ la fiecare lipire";
-"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "în paleta de comenzi: păstrează o comandă activă la fiecare lipire, afișată ca etichetă deasupra listei; clic pe etichetă o oprește";
+"in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "în paleta de comenzi: păstrează o comandă activă la fiecare lipire, afișată ca etichetă în partea de jos a ferestrei; clic pe etichetă o oprește";
+"Generators" = "Generatoare";

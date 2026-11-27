@@ -13,6 +13,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Run the tests
+        run: swift test
+
+      - name: Check the translations
+        run: python3 -I tools/check-translations.py
+
       - name: Import the signing certificate
         env:
           CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}

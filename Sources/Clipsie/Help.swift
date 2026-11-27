@@ -63,7 +63,7 @@ enum Help {
         row(generators, "generators (UUID, timestamp, password…)")
         row("→  ←", "commands · generators · sequences, with the cursor at the end (← at the start) of the search")
         if let repeatCommand { row(repeatCommand, "run the last command again") }
-        row("⌥↩", "in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off")
+        row("⌥↩", "in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off")
         row("Esc", "clear the search, then close")
         note("Type 3 or more letters of a generator's name to get it on top of the search results. The palettes list your most used commands first, and initials work too: pu finds Paste UPPERCASE.")
 

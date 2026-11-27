@@ -213,13 +213,18 @@ struct UserCommand: Decodable {
     }
 
     static func saveSequence(name: String, steps: String, replacing original: String?) throws {
+        let text = try String(contentsOf: AppPaths.commands, encoding: .utf8)
+        let updated = try savingSequence(name: name, steps: steps, replacing: original, in: text)
+        try Data(updated.utf8).write(to: AppPaths.commands, options: .atomic)
+    }
+
+    static func savingSequence(name: String, steps: String, replacing original: String?, in text: String) throws -> String {
         _ = try SequenceStep.parse(steps)
         let entry: [String: Any] = ["name": name, "sequence": steps]
         func json(_ object: [String: Any]) throws -> String {
             String(decoding: try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes]),
                    as: UTF8.self)
         }
-        let text = try String(contentsOf: AppPaths.commands, encoding: .utf8)
         let updated: String
         if let original {
             guard let range = sequenceRange(named: original, in: text) else {
@@ -236,11 +241,15 @@ struct UserCommand: Decodable {
         guard (try? JSONSerialization.jsonObject(with: Data(updated.utf8))) is [Any] else {
             throw ScriptError(message: L("commands.json isn't a JSON list."))
         }
-        try Data(updated.utf8).write(to: AppPaths.commands, options: .atomic)
+        return updated
     }
 
     static func deleteSequence(named name: String) throws {
         let text = try String(contentsOf: AppPaths.commands, encoding: .utf8)
+        try Data(removingSequence(named: name, from: text).utf8).write(to: AppPaths.commands, options: .atomic)
+    }
+
+    static func removingSequence(named name: String, from text: String) throws -> String {
         guard let range = sequenceRange(named: name, in: text) else {
             throw ScriptError(message: L("Couldn't find “%@” in commands.json.", name))
         }
@@ -260,7 +269,7 @@ struct UserCommand: Decodable {
         guard (try? JSONSerialization.jsonObject(with: Data(updated.utf8))) is [Any] else {
             throw ScriptError(message: L("commands.json isn't a JSON list."))
         }
-        try Data(updated.utf8).write(to: AppPaths.commands, options: .atomic)
+        return updated
     }
 
     private static func sequenceRange(named name: String, in text: String) -> Range<String.Index>? {
@@ -314,7 +323,7 @@ struct UserCommand: Decodable {
         return (all.filter { !($0.type == .automatic && $0.usesShell) }, unsafe.map(\.name))
     }
 
-    private static let builtInCommandsJSON = #"""
+    static let builtInCommandsJSON = #"""
     [
       {"name": "Resize image to 50%", "types": ["image"], "script": "clip.image.resize(item.image, { scale: 0.5 })", "output": "newItem"},
       {"name": "Resize image to fit 1024 px", "types": ["image"], "script": "clip.image.resize(item.image, { max: 1024 })", "output": "newItem"},
@@ -439,20 +448,21 @@ enum CommandRunner {
 }
 
 enum CommandUsage {
+    static var defaults = UserDefaults.standard
     private static let usageKey = "commandUsage"
     private static let lastKey = "lastCommand"
 
-    static var last: String? { UserDefaults.standard.string(forKey: lastKey) }
+    static var last: String? { defaults.string(forKey: lastKey) }
 
     static func record(_ name: String) {
-        var usage = UserDefaults.standard.dictionary(forKey: usageKey) as? [String: [Double]] ?? [:]
+        var usage = defaults.dictionary(forKey: usageKey) as? [String: [Double]] ?? [:]
         usage[name] = [(usage[name]?.first ?? 0) + 1, Date().timeIntervalSince1970]
-        UserDefaults.standard.set(usage, forKey: usageKey)
-        UserDefaults.standard.set(name, forKey: lastKey)
+        defaults.set(usage, forKey: usageKey)
+        defaults.set(name, forKey: lastKey)
     }
 
     static func ranked(_ commands: [UserCommand]) -> [UserCommand] {
-        let usage = UserDefaults.standard.dictionary(forKey: usageKey) as? [String: [Double]] ?? [:]
+        let usage = defaults.dictionary(forKey: usageKey) as? [String: [Double]] ?? [:]
         let now = Date().timeIntervalSince1970
         let scores = commands.map { command -> Double in
             guard let entry = usage[command.name], entry.count == 2 else { return 0 }
@@ -463,7 +473,7 @@ enum CommandUsage {
 
     static func pin(_ names: [String], in palette: String) {
         let rest = pinned(palette).filter { !names.contains($0) }
-        UserDefaults.standard.set(names + rest, forKey: "commandOrder." + palette)
+        defaults.set(names + rest, forKey: "commandOrder." + palette)
     }
 
     static func arranged(_ commands: [UserCommand], in palette: String) -> [UserCommand] {
@@ -474,6 +484,6 @@ enum CommandUsage {
     }
 
     private static func pinned(_ palette: String) -> [String] {
-        UserDefaults.standard.stringArray(forKey: "commandOrder." + palette) ?? []
+        defaults.stringArray(forKey: "commandOrder." + palette) ?? []
     }
 }

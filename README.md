@@ -51,13 +51,14 @@ Needs the Xcode Command Line Tools (`xcode-select --install`).
 git clone https://github.com/sph3rex/clipsie.git
 cd clipsie
 ./build.sh install    # builds Clipsie.app, copies it to /Applications and starts it
+tools/test.sh        # runs the tests (also run on GitHub for every push and before each release)
 ```
 
 </details>
 
 ## Using it
 
-Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar icon). Start typing to search; all words must match. Click the magnifying glass to switch between exact, fuzzy (typo-tolerant) and regular-expression search. The preview on the right shows the selected item.
+Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar icon). Start typing to search; all words must match. Click the magnifying glass to switch between exact, fuzzy (typo-tolerant) and regular-expression search. The preview on the right shows the selected item. The Commands, Generators and Sequences tabs on the right open the same palettes as the keys below; click the open one again to go back to the list.
 
 | Key | Does |
 |---|---|
@@ -77,7 +78,7 @@ Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd> anywhere (or click the menu bar i
 | <kbd>⌘</kbd><kbd>⇧</kbd><kbd>E</kbd> or `>>` | generators (UUID, password, timestamp…) |
 | <kbd>→</kbd> / <kbd>←</kbd> | with the cursor at the end (← at the start) of the search: cycle commands → generators → sequences → back to your search |
 | <kbd>⌘</kbd><kbd>R</kbd> | run the last command again, on the selected items |
-| <kbd>⌥</kbd><kbd>↩</kbd> in `>` | keep a command on: every item you paste through Clipsie goes through it (e.g. Paste UPPERCASE or Paste with secrets redacted) until you turn it off. Active commands show as pills under the list tabs; click one to turn it off. If one fails, nothing is pasted. They're off again after Clipsie restarts |
+| <kbd>⌥</kbd><kbd>↩</kbd> in `>` | keep a command on: every item you paste through Clipsie goes through it (e.g. Paste UPPERCASE or Paste with secrets redacted) until you turn it off. Active commands show as pills at the bottom of the window, above the status line; click one to turn it off. If one fails, nothing is pasted. They're off again after Clipsie restarts |
 | `` ``` `` typed quickly | paste the item as a Markdown code block |
 | `??` typed quickly | help: all keys, search filters and script examples |
 | <kbd>Esc</kbd> | clear the search, then close |

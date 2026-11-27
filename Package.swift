@@ -32,5 +32,10 @@ let package = Package(
             path: "Sources/Clipsie",
             linkerSettings: [.linkedFramework("Security")]
         ),
+        .testTarget(
+            name: "ClipsieTests",
+            dependencies: ["Clipsie"],
+            path: "Tests/ClipsieTests"
+        ),
     ]
 )

@@ -313,4 +313,5 @@
 "“%@” failed, so nothing was pasted" = "„%@” nem sikerült, ezért semmi sem lett beillesztve";
 "On for every paste — click to turn off" = "Minden beillesztésnél aktív — kattints a kikapcsoláshoz";
 "⌥↩ keep on for every paste" = "⌥↩ maradjon aktív minden beillesztésnél";
-"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "a parancspalettán: egy parancs aktív marad minden beillesztésnél, címkeként látszik a lista felett; a címkére kattintva kikapcsol";
+"in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "a parancspalettán: egy parancs aktív marad minden beillesztésnél, címkeként látszik az ablak alján; a címkére kattintva kikapcsol";
+"Generators" = "Generátorok";

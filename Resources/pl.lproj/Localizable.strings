@@ -313,4 +313,5 @@
 "“%@” failed, so nothing was pasted" = "„%@” nie powiodło się, więc nic nie wklejono";
 "On for every paste — click to turn off" = "Włączone dla każdego wklejenia — kliknij, aby wyłączyć";
 "⌥↩ keep on for every paste" = "⌥↩ pozostaw włączone dla każdego wklejenia";
-"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "w palecie poleceń: pozostaw polecenie włączone dla każdego wklejenia, widoczne jako etykieta nad listą; kliknij etykietę, aby je wyłączyć";
+"in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "w palecie poleceń: pozostaw polecenie włączone dla każdego wklejenia, widoczne jako etykieta na dole okna; kliknij etykietę, aby je wyłączyć";
+"Generators" = "Generatory";

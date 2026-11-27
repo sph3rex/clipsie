@@ -313,4 +313,5 @@
 "“%@” failed, so nothing was pasted" = "「%@」が失敗したため、何もペーストされませんでした";
 "On for every paste — click to turn off" = "すべてのペーストに適用中 — クリックでオフ";
 "⌥↩ keep on for every paste" = "⌥↩ すべてのペーストで有効のままにする";
-"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "コマンドパレットで: コマンドをすべてのペーストで有効のままにし、リストの上にラベルで表示します。ラベルをクリックするとオフになります";
+"in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "コマンドパレットで: コマンドをすべてのペーストで有効のままにし、ウインドウ下部にラベルで表示します。ラベルをクリックするとオフになります";
+"Generators" = "ジェネレータ";

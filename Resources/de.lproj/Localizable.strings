@@ -313,4 +313,5 @@
 "“%@” failed, so nothing was pasted" = "„%@“ ist fehlgeschlagen, daher wurde nichts eingefügt";
 "On for every paste — click to turn off" = "Aktiv für jedes Einfügen – zum Ausschalten klicken";
 "⌥↩ keep on for every paste" = "⌥↩ für jedes Einfügen aktiv lassen";
-"in the commands palette: keep a command on for every paste, shown as a pill above the list; click the pill to turn it off" = "in der Befehlspalette: einen Befehl für jedes Einfügen aktiv lassen, angezeigt als Kapsel über der Liste; Klick auf die Kapsel schaltet ihn aus";
+"in the commands palette: keep a command on for every paste, shown as a pill at the bottom of the window; click the pill to turn it off" = "in der Befehlspalette: einen Befehl für jedes Einfügen aktiv lassen, angezeigt als Kapsel unten im Fenster; Klick auf die Kapsel schaltet ihn aus";
+"Generators" = "Generatoren";
